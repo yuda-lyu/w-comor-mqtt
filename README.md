@@ -29,7 +29,7 @@ npm i w-comor-mqtt
 import MqServer from 'w-comor-mqtt/dist/mq-server.umd.js'
 
 function random(min, max) {
-    return Math.floor(Math.random()max) + min
+    return Math.floor(Math.random() * max) + min
 }
 
 let opt = {
@@ -148,7 +148,7 @@ new MqClient(opt)
 ```
 [Necessary] Add script for mq-client.
 ```alias
-<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.1/dist/mq-client.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.2/dist/mq-client.umd.js"></script>
 ```
 #### Example for `mq-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/web.html)]

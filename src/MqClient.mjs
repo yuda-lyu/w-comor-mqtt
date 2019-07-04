@@ -112,7 +112,6 @@ function MqClient(opt) {
 
         //create
         let client = mqtt.connect(opt.url, {
-            clientId: 'abc123456789',
             username: opt.token, //用username傳使用者token供伺服器驗證
             //password: topicUQid, //用password傳輸topicUQid
             // keepalive: 1,
