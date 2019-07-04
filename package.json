@@ -1,6 +1,6 @@
 {
   "name": "w-comor-mqtt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A mqtt communicator in nodejs and browser. Mapping functions in nodejs to end points.",
   "main": "dist/ws-server.umd.js",
   "dependencies": {
