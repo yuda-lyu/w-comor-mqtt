@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw">
+
+    <head>
+        <meta http-equiv="content-type" content="text/html charset=UTF-8" />
+        <title>MQTT</title>
+
+        <script nomodule src="https://cdn.jsdelivr.net/npm/@babel/polyfill/dist/polyfill.min.js"></script>
+
+        <script src="https://unpkg.com/mqtt@3.0.0/dist/mqtt.min.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js"></script>
+        
+        <script src="dist/mq-client.umd.js"></script>
+
+        <script>
+
+            //opt
+            let opt = {
+                url: 'mqtt://localhost:8090', //for mqtt web server
+                token: '*',
+                open: function() {
+                    wsemi.bodyLog('client web: open')
+                },
+                close: function() {
+                    wsemi.bodyLog('client web: close')
+                },
+                error: function(err) {
+                    wsemi.bodyLog('client web: error:', err)
+                },
+                reconn: function() {
+                    wsemi.bodyLog('client web: reconn')
+                },
+            }
+
+            //MqClient
+            let MqClient = window['mq-client']
+            new MqClient(opt)
+                .then(function(wo) {
+                    wsemi.bodyLog('client web: funcs: '+JSON.stringify(Object.keys(wo)))
+
+                    function core(ps) {
+                        wo.add(ps)
+                            .then(function(r) {
+                                wsemi.bodyLog('client web: add('+JSON.stringify(ps)+')='+r)
+                            })
+                            .catch(function(err) {
+                                wsemi.bodyLog('client web: add: catch: ', err)
+                            })
+                        wo.minu(ps)
+                            .then(function(r) {
+                                wsemi.bodyLog('client web: minu('+JSON.stringify(ps)+')='+r)
+                            })
+                            .catch(function(err) {
+                                wsemi.bodyLog('client web: minu: catch: ', err)
+                            })
+                    }
+
+                    let i = 100
+                    setInterval(function() {
+                        i += 1
+                        core({
+                            p1: i,
+                            p2: 10,
+                        })
+                    }, 1000)
+
+                })
+                .catch(function(err) {
+                    console.log('client web: catch', err)
+                })
+
+        </script>
+
+    </head>
+
+    <body>
+    </body>
+
+</html>
