@@ -111,13 +111,26 @@ function MqClient(opt) {
 
 
         //create
-        let client = mqtt.connect(opt.url, {
-            username: opt.token, //用username傳使用者token供伺服器驗證
-            //password: topicUQid, //用password傳輸topicUQid
-            // keepalive: 1,
-            // clean: false,
-            // reconnectPeriod: 1000
-        })
+        let client = null
+        try {
+            client = mqtt.connect(opt.url, {
+                username: opt.token, //用username傳使用者token供伺服器驗證
+                //password: topicUQid, //用password傳輸topicUQid
+                // keepalive: 1,
+                // clean: false,
+                // reconnectPeriod: 1000
+            })
+        }
+        catch (err) {
+
+            //reconn
+            reconn()
+
+            //reject
+            pmc.reject()
+
+            return pmc
+        }
 
 
         //subscribe
@@ -337,17 +350,18 @@ function MqClient(opt) {
 
         }
         else {
+            //other
 
             //func_old, func_new
             let func_old = keys(wo)
             let func_new = keys(woc)
 
-            //rebind wo func
+            //rebind wo funcs
             each(func_new, function(k) {
                 wo[k] = woc[k]
             })
 
-            //delete wo func
+            //delete wo funcs
             each(func_old, function(k) {
                 if (!arrhas(func_new, k)) {
                     delete wo[k]
@@ -367,6 +381,7 @@ function MqClient(opt) {
             .then(function(woc) {
                 dealFuncs(woc)
             })
+            .catch(function() { })
 
     }
 
