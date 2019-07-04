@@ -293,12 +293,12 @@ function MqClient(opt) {
         client.on('offline', function() {
             //console.log('offline')
 
+            //強制停止
+            client.end()
+
             if (isfun(opt.close)) {
                 opt.close()
             }
-
-            //強制停止
-            client.end()
 
             //reconn
             reconn()

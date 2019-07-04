@@ -6,7 +6,7 @@ function random(min, max) {
 }
 
 let opt = {
-    port: 8080, //for mqtt node server
+    port: 8080, //for mqtt nodejs server
     portWeb: 8090, //for mqtt web server
     authenticate: async function(token) {
         //使用token驗證使用者身份

@@ -27,7 +27,8 @@ import arrhas from 'wsemi/src/arrhas.mjs'
  * }
  *
  * let opt = {
- *     port: 8080,
+ *     port: 8080, //for mqtt nodejs server
+ *     portWeb: 8090, //for mqtt web server
  *     authenticate: async function(token) {
  *         //使用token驗證使用者身份
  *         return new Promise(function(resolve, reject) {

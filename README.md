@@ -14,8 +14,8 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 
 ## Parts
 `w-comor-mqtt` includes 2 parts: 
-* `mq-server`: for node server
-* `mq-client`: for node and browser client
+* `mq-server`: for nodejs server
+* `mq-client`: for nodejs and browser client
 
 ## Installation
 ### Using npm(ES6 module):
@@ -33,7 +33,7 @@ function random(min, max) {
 }
 
 let opt = {
-    port: 8080, //for mqtt node server
+    port: 8080, //for mqtt nodejs server
     portWeb: 8090, //for mqtt web server
     authenticate: async function(token) { 
         //authenticate user by token
@@ -82,7 +82,7 @@ import MqClient from 'w-comor-mqtt/dist/mq-client.umd.js'
 
 //opt
 let opt = {
-    url: 'mqtt://localhost:8080', //for mqtt node server
+    url: 'mqtt://localhost:8080', //for mqtt nodejs server
     token: '*',
     open: function() {
         console.log('client nodejs: open')
