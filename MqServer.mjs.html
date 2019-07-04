@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>MqServer.mjs - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#MqClient">MqClient</a></li><li><a href="global.html#MqServer">MqServer</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">MqServer.mjs</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import mosca from 'mosca'
+import cloneDeep from 'lodash/cloneDeep'
+import keys from 'lodash/keys'
+import genPm from 'wsemi/src/genPm.mjs'
+import haskey from 'wsemi/src/haskey.mjs'
+import getdtvstr from 'wsemi/src/getdtvstr.mjs'
+import getdtv from 'wsemi/src/getdtv.mjs'
+import j2o from 'wsemi/src/j2o.mjs'
+import isfun from 'wsemi/src/isfun.mjs'
+import arrhas from 'wsemi/src/arrhas.mjs'
+
+
+/**
+ * 建立MQTT伺服器
+ *
+ * @param {Object} opt 輸入設定參數物件
+ * @param {Integer} [opt.port=8080] 輸入MQTT提供給nodejs服務的port，預設8080
+ * @param {Integer} [opt.portWeb=opt.port+10] 輸入MQTT提供給web服務的port，預設為opt.port+10，也就是8090
+ * @param {Function} opt.authenticate 輸入使用者身份認證函數，供伺服器端驗證之用，函數會傳入使用者端連線之token參數，回傳為Promise，resolve(true)為驗證通過，resolve(false)為驗證不通過
+ * @param {Object} opt.funcs 輸入伺服器端供使用者端呼叫之函數物件，各key為函數名稱，對應value為函數本體。各函數之輸入需為單一物件，而各函數回傳皆為Promise，可通過resolve與reject回傳結果
+ * @example
+ *
+ * import MqServer from 'w-comor-mqtt/dist/mq-server.umd.js'
+ *
+ * function random(min, max) {
+ *     return Math.floor(Math.random() * max) + min
+ * }
+ *
+ * let opt = {
+ *     port: 8080,
+ *     authenticate: async function(token) {
+ *         //使用token驗證使用者身份
+ *         return new Promise(function(resolve, reject) {
+ *             setTimeout(function() {
+ *                 resolve(true)
+ *             }, 1000)
+ *         })
+ *     },
+ *     filterFuncs: async function(token, funcs) {
+ *         //使用token驗證使用者身份與過濾可用funcs
+ *         return new Promise(function(resolve, reject) {
+ *             funcs = funcs.filter(function(v) {
+ *                 return v.indexOf('Hide') &lt; 0
+ *             })
+ *             resolve(funcs)
+ *         })
+ *     },
+ *     onClientChange: function(clients, opt) {
+ *         console.log(`Server[port:${opt.port}][port for web:${opt.portWeb}] now clients: ${clients.length}`)
+ *     },
+ *     funcs: {
+ *         add: function({ p1, p2 }) {
+ *             return new Promise(function(resolve, reject) {
+ *                 setTimeout(function() {
+ *                     resolve(p1 + p2)
+ *                 }, random(100, 3000))
+ *             })
+ *         },
+ *         addHide: function({ p1, p2 }) {
+ *             return new Promise(function(resolve, reject) {
+ *                 setTimeout(function() {
+ *                     resolve(p1 + p2)
+ *                 }, random(100, 3000))
+ *             })
+ *         },
+ *         minu: function({ p1, p2 }) {
+ *             return new Promise(function(resolve, reject) {
+ *                 setTimeout(function() {
+ *                     resolve(p1 - p2)
+ *                 }, random(100, 3000))
+ *             })
+ *         },
+ *     },
+ * }
+ *
+ * new MqServer(opt)
+ *
+ */
+function MqServer(opt) {
+
+
+    //cloneDeep
+    opt = cloneDeep(opt)
+
+
+    //default
+    if (!opt.port) {
+        opt.port = 8080
+    }
+    if (!opt.portWeb) {
+        opt.portWeb = opt.port + 10
+    }
+
+
+    //funcs
+    let funcs = []
+    if (haskey(opt, 'funcs')) {
+        funcs = keys(opt['funcs'])
+    }
+
+
+    //authenticate
+    function authenticate(token) {
+        let pm = genPm()
+        if (isfun(opt.authenticate)) {
+            opt.authenticate(token)
+                .then(function(vd) {
+                    pm.resolve(vd)
+                })
+        }
+        else {
+            pm.resolve(true)
+        }
+        return pm
+    }
+
+
+    // //ascoltatore
+    // let ascoltatore = { //數據持久化
+    //     type: 'mongo',
+    //     url: 'mongodb://username:password@127.0.0.1',
+    //     pubsubCollection: 'ascoltatori',
+    //     mongo: {}
+    // }
+
+
+    //serverSettings
+    let serverSettings = {
+        port: opt.port, //for server
+        http: {
+            port: opt.portWeb, //for web
+            bundle: true,
+            static: './'
+        },
+        //backend: ascoltatore
+    }
+
+
+    let server = new mosca.Server(serverSettings)
+
+
+    //clientConnected
+    let clients = []
+    server.on('clientConnected', function(client) {
+
+        //push
+        clients.push(client)
+        if (isfun(opt.onClientChange)) {
+            opt.onClientChange(clients, opt)
+        }
+
+    })
+
+
+    //clientDisconnected
+    server.on('clientDisconnected', function(client) {
+
+        //刪除client
+        clients = clients.filter(function(c) {
+            return c !== client
+        })
+        if (isfun(opt.onClientChange)) {
+            opt.onClientChange(clients, opt)
+        }
+
+    })
+
+
+    //published, 處理全部message
+    server.on('published', function(packet, client) {
+        //console.log('published', packet)
+
+        //topic
+        let topic = packet.topic
+
+        //pl
+        let pl = packet.payload.toString('utf8')
+
+        //check
+        if (pl.indexOf('"output"') >= 0) {
+            return
+        }
+
+        //check
+        if (topic.indexOf('topic|') >= 0) {
+            //console.log('get client publish', pl)
+
+            //topicUQid
+            let topicUQid = topic
+
+            //data
+            let data = j2o(pl)
+
+            //execFunction
+            execFunction(topicUQid, data)
+
+        }
+
+
+    })
+
+
+    //publish
+    function publish(topicUQid, data) {
+        let packet = {
+            topic: topicUQid,
+            payload: JSON.stringify(data),
+            qos: 2, // 0, 1, or 2
+            retain: false //false不保留，true則將此訊息保留，除了發送給當前訂閱者之外，當有新訂閱者時，則將最後為1的訊息發給該新訂閱者
+        }
+        //mosca: server.publish(packet, client, callback)
+        server.publish(packet, function(err) {
+            if (err) {
+                console.log('publish: error:', err)
+            }
+        })
+    }
+
+
+    //execFunction
+    async function execFunction(topicUQid, data) {
+        console.log(`Server[port:${opt.port}]: `, 'topicUQid: ' + topicUQid, data)
+
+        //token
+        let token = getdtvstr(data, 'token')
+
+        //vd
+        let vd = await authenticate(token)
+
+        //check
+        if (vd) {
+
+            //func
+            let func = getdtvstr(data, 'func')
+
+            //input
+            let input = getdtv(data, 'input')
+
+            //getFuncs
+            if (func === 'getFuncs') {
+
+                if (isfun(opt.filterFuncs)) {
+                    funcs = await opt.filterFuncs(token, funcs)
+                }
+
+                //data
+                data = { output: { sys: 'sys', funcs: funcs } }
+
+            }
+            //call
+            else if (arrhas(funcs, func)) {
+
+                //call func in opt.funcs
+                let output = await opt['funcs'][func](input)
+
+                //add output
+                data['output'] = output
+
+            }
+            else {
+                //publish no func
+
+                //add output
+                data['output'] = { err: `can not find: ${func}` }
+
+            }
+
+        }
+        else {
+            //publish no authenticate
+
+            //add output
+            data['output'] = { err: `can not authenticate token: ${token}` }
+
+        }
+
+        //publish data
+        publish(topicUQid, data)
+
+    }
+
+
+    //setup
+    function setup() {
+
+        //authenticate
+        server.authenticate = async function (client, username, password, callback) {
+            //console.log('authenticate', username, password.toString('utf8'))
+
+            //token, from username
+            let token = username
+
+            //vd
+            let vd = await authenticate(token)
+
+            //callback
+            callback(null, vd)
+
+        }
+
+        console.log(`Server running at: mqtt://localhost:${opt.port} and [web] mqtt://localhost:${opt.portWeb}`)
+
+    }
+    server.on('ready', setup)
+
+
+}
+
+
+export default MqServer
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.2</a> on Thu Jul 04 2019 12:12:58 GMT+0800 (GMT+08:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>
