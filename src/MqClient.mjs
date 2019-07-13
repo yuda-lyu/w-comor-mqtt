@@ -1,5 +1,6 @@
 import mqtt from 'mqtt'
 import get from 'lodash/get'
+import set from 'lodash/set'
 import each from 'lodash/each'
 import keys from 'lodash/keys'
 import genPm from 'wsemi/src/genPm.mjs'
@@ -48,6 +49,20 @@ import arrhas from 'wsemi/src/arrhas.mjs'
  *         console.log('client: funcs: ', wo)
  *
  *         function core(ps) {
+ *             wo.group.plus(ps)
+ *                 .then(function(r) {
+ *                     console.log('client: plus(' + JSON.stringify(ps) + ')=' + r)
+ *                 })
+ *                 .catch(function(err) {
+ *                     console.log('client: plus: catch: ', err)
+ *                 })
+ *             wo.group.div(ps)
+ *                 .then(function(r) {
+ *                     console.log('client: div(' + JSON.stringify(ps) + ')=' + r)
+ *                 })
+ *                 .catch(function(err) {
+ *                     console.log('client: div: catch: ', err)
+ *                 })
  *             wo.add(ps)
  *                 .then(function(r) {
  *                     console.log(`client: add(${JSON.stringify(ps)})=${r}`)
@@ -267,9 +282,10 @@ function MqClient(opt) {
                         let func = funcs[i]
 
                         //add func
-                        woc[func] = async function(input) {
+                        let f = async function(input) {
                             return execFunction(func, input)
                         }
+                        set(woc, func, f)
 
                     }
 

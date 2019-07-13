@@ -10,9 +10,29 @@
         <script src="https://unpkg.com/mqtt@3.0.0/dist/mqtt.min.js"></script>
 
         <script src="https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js"></script>
-        
+
         <script src="dist/mq-client.umd.js"></script>
 
+        <script src="https://cdn.jsdelivr.net/npm/w-jsonview-tree/dist/w-jsonview-tree.umd.js"></script>
+        <script>
+            let jv=window['w-jsonview-tree']
+            function logData(title,data){
+                let id='c'+wsemi.genID()
+                let s='<div style="margin:10px;"><div style="display:inline-block; vertical-align:top; margin-right:5px; color:#62f;">'+title+'</div><div id="'+id+'" style="display:inline-block; vertical-align:top;"></div></div>'
+                document.querySelector('body').insertAdjacentHTML('beforeend', s)
+                let ele=document.querySelector('#'+id)
+                if(data){
+                    if(wsemi.isnum(data)){
+                        ele.innerHTML=data
+                    }
+                    else{
+                        jv(data, ele, {expanded:true})
+                        ele.style.marginTop='-4px'
+                    }
+                }
+            }
+        </script>
+        
         <script>
 
             //opt
@@ -20,16 +40,16 @@
                 url: 'mqtt://localhost:8090', //for mqtt web server
                 token: '*',
                 open: function() {
-                    wsemi.bodyLog('client web: open')
+                    logData('client web: open')
                 },
                 close: function() {
-                    wsemi.bodyLog('client web: close')
+                    logData('client web: close')
                 },
                 error: function(err) {
-                    wsemi.bodyLog('client web: error:', err)
+                    logData('client web: error:', err)
                 },
                 reconn: function() {
-                    wsemi.bodyLog('client web: reconn')
+                    logData('client web: reconn')
                 },
             }
 
@@ -37,22 +57,36 @@
             let MqClient = window['mq-client']
             new MqClient(opt)
                 .then(function(wo) {
-                    wsemi.bodyLog('client web: funcs: '+JSON.stringify(Object.keys(wo)))
+                    logData('client web: funcs: ', wo)
 
                     function core(ps) {
-                        wo.add(ps)
+                        wo.group.plus(ps)
                             .then(function(r) {
-                                wsemi.bodyLog('client web: add('+JSON.stringify(ps)+')='+r)
+                                logData('client web: plus(' + JSON.stringify(ps) + ') = ', r)
                             })
                             .catch(function(err) {
-                                wsemi.bodyLog('client web: add: catch: ', err)
+                                logData('client web: plus: catch: ', err)
+                            })
+                        wo.group.div(ps)
+                            .then(function(r) {
+                                logData('client web: div(' + JSON.stringify(ps) + ') = ', r)
+                            })
+                            .catch(function(err) {
+                                logData('client web: div: catch: ', err)
+                            })
+                        wo.add(ps)
+                            .then(function(r) {
+                                logData('client web: add(' + JSON.stringify(ps) + ') = ', r)
+                            })
+                            .catch(function(err) {
+                                logData('client web: add: catch: ', err)
                             })
                         wo.minu(ps)
                             .then(function(r) {
-                                wsemi.bodyLog('client web: minu('+JSON.stringify(ps)+')='+r)
+                                logData('client web: minu(' + JSON.stringify(ps) + ') = ', r)
                             })
                             .catch(function(err) {
-                                wsemi.bodyLog('client web: minu: catch: ', err)
+                                logData('client web: minu: catch: ', err)
                             })
                     }
 
@@ -67,7 +101,7 @@
 
                 })
                 .catch(function(err) {
-                    console.log('client web: catch', err)
+                    logData('client web: catch: ', err)
                 })
 
         </script>

@@ -50,21 +50,35 @@ import arrhas from 'wsemi/src/arrhas.mjs'
  *         console.log(`Server[port:${opt.port}][port for web:${opt.portWeb}] now clients: ${clients.length}`)
  *     },
  *     funcs: {
- *         add: function({ p1, p2 }) {
+ *         'group.plus': function({ p1, p2 }) {
+ *             return new Promise(function(resolve, reject) {
+ *                 setTimeout(function() {
+ *                     resolve(p1 * p2)
+ *                 }, random(100, 3000))
+ *             })
+ *         },
+ *         'group.div': function({ p1, p2 }) {
+ *             return new Promise(function(resolve, reject) {
+ *                 setTimeout(function() {
+ *                     resolve(p1 / p2)
+ *                 }, random(100, 3000))
+ *             })
+ *         },
+ *         'add': function({ p1, p2 }) {
  *             return new Promise(function(resolve, reject) {
  *                 setTimeout(function() {
  *                     resolve(p1 + p2)
  *                 }, random(100, 3000))
  *             })
  *         },
- *         addHide: function({ p1, p2 }) {
+ *         'addHide': function({ p1, p2 }) {
  *             return new Promise(function(resolve, reject) {
  *                 setTimeout(function() {
  *                     resolve(p1 + p2)
  *                 }, random(100, 3000))
  *             })
  *         },
- *         minu: function({ p1, p2 }) {
+ *         'minu': function({ p1, p2 }) {
  *             return new Promise(function(resolve, reject) {
  *                 setTimeout(function() {
  *                     resolve(p1 - p2)

@@ -1,5 +1,5 @@
-//import MqClient from './src/MqClient.mjs'
-import MqClient from './dist/mq-client.umd.js'
+import MqClient from './src/MqClient.mjs'
+//import MqClient from './dist/mq-client.umd.js'
 
 let opt = {
     url: 'mqtt://localhost:8080',
@@ -23,6 +23,20 @@ new MqClient(opt)
         console.log('client nodejs[port:8080]: funcs: ', wo)
 
         function core(ps) {
+            wo.group.plus(ps)
+                .then(function(r) {
+                    console.log('client nodejs[port:8080]: plus(' + JSON.stringify(ps) + ')=' + r)
+                })
+                .catch(function(err) {
+                    console.log('client nodejs[port:8080]: plus: catch: ', err)
+                })
+            wo.group.div(ps)
+                .then(function(r) {
+                    console.log('client nodejs[port:8080]: div(' + JSON.stringify(ps) + ')=' + r)
+                })
+                .catch(function(err) {
+                    console.log('client nodejs[port:8080]: div: catch: ', err)
+                })
             wo.add(ps)
                 .then(function(r) {
                     console.log('client nodejs[port:8080]: add(' + JSON.stringify(ps) + ')=' + r)
