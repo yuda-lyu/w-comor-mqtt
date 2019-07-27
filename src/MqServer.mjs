@@ -234,7 +234,7 @@ function MqServer(opt) {
 
     //execFunction
     async function execFunction(topicUQid, data) {
-        console.log(`Server[port:${opt.port}]: `, 'topicUQid: ' + topicUQid, data)
+        //console.log(`Server[port:${opt.port}]: `, 'topicUQid: ' + topicUQid, data)
 
         //token
         let token = getdtvstr(data, 'token')
