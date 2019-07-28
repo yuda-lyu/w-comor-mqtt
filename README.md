@@ -35,7 +35,7 @@ function random(min, max) {
 let opt = {
     port: 8080, //for mqtt nodejs server
     portWeb: 8090, //for mqtt web server
-    authenticate: async function(token) { 
+    authenticate: function(token) { 
         //authenticate user by token
         return new Promise(function(resolve, reject) {
             setTimeout(function() {
@@ -43,7 +43,7 @@ let opt = {
             }, 1000)
         })
     },
-    filterFuncs: async function(token, funcs) {
+    filterFuncs: function(token, funcs) {
         //resolve funcs by authenticating user
         return new Promise(function(resolve, reject) {
             funcs = funcs.filter(function(v) {
@@ -183,7 +183,7 @@ new MqClient(opt)
 ```
 [Necessary] Add script for mq-client.
 ```alias
-<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.6/dist/mq-client.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.7/dist/mq-client.umd.js"></script>
 ```
 #### Example for `mq-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/web.html)]
