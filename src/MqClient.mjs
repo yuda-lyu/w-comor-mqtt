@@ -1,3 +1,4 @@
+import EventEmitter from 'wolfy87-eventemitter'
 import mqtt from 'mqtt'
 import get from 'lodash/get'
 import set from 'lodash/set'
@@ -97,9 +98,12 @@ import arrhas from 'wsemi/src/arrhas.mjs'
 function MqClient(opt) {
     let pm = genPm()
     let id = '' //全域儲存當前client id
-    let msgs = {} //訊息佇列
     let wo = {} //回傳操作物件
     let isuc = 0 //已連線成功次數
+
+
+    //ev
+    let ev = new EventEmitter()
 
 
     function NewConn() {
@@ -239,21 +243,19 @@ function MqClient(opt) {
                 input: input,
             }
 
-            //add msgs
-            msgs[_id] = null
-
             //pub
             pub(msg)
 
             //等待結果回傳
-            let t = setInterval(function() {
-                if (msgs[_id] !== null) {
-                    let output = get(msgs[_id], 'output')
-                    delete msgs[_id]
-                    pmm.resolve(output)
-                    clearInterval(t)
-                }
-            }, 1000)
+            ev.on(_id, function (output) {
+
+                //resolve
+                pmm.resolve(output)
+
+                //removeAllListeners
+                ev.removeAllListeners(_id)
+
+            })
 
             return pmm
         }
@@ -296,7 +298,16 @@ function MqClient(opt) {
 
                 //get result
                 if (get(data, '_id') && get(data, 'output')) {
-                    msgs[data._id] = data
+
+                    //_id
+                    let _id = get(data, '_id')
+
+                    //output
+                    let output = get(data, 'output')
+
+                    //emit
+                    ev.emit(_id, output)
+
                 }
 
             }
