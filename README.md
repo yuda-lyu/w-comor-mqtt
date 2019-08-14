@@ -19,7 +19,10 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 
 ## Installation
 ### Using npm(ES6 module):
-> **Note:** `mq-server` depends on `mosca` and `mq-client` depends on `mqtt`.
+> **Note:** `mq-server` depends on `mosca`.
+
+> **Note:** `mq-client` depends on `mqtt` and `wolfy87-eventemitter`.
+
 ```alias
 npm i w-comor-mqtt
 ```
