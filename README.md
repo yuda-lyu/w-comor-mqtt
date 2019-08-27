@@ -186,7 +186,7 @@ new MqClient(opt)
 ```
 [Necessary] Add script for mq-client.
 ```alias
-<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.13/dist/mq-client.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.14/dist/mq-client.umd.js"></script>
 ```
 #### Example for `mq-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/web.html)]
