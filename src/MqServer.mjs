@@ -17,7 +17,7 @@ import arrhas from 'wsemi/src/arrhas.mjs'
  * @param {Integer} [opt.port=8080] 輸入MQTT提供給nodejs服務的port，預設8080
  * @param {Integer} [opt.portWeb=opt.port+10] 輸入MQTT提供給web服務的port，預設為opt.port+10，也就是8090
  * @param {Function} opt.authenticate 輸入使用者身份認證函數，供伺服器端驗證之用，函數會傳入使用者端連線之token參數，回傳為Promise，resolve(true)為驗證通過，resolve(false)為驗證不通過
- * @param {Object} opt.funcs 輸入伺服器端供使用者端呼叫之函數物件，各key為函數名稱，對應value為函數本體。各函數之輸入需為單一物件，而各函數回傳皆為Promise，可通過resolve與reject回傳結果
+ * @param {Object} [opt.funcs={}] 輸入伺服器端供使用者端呼叫之函數物件，各key為函數名稱，對應value為函數本體。各函數之輸入需為單一物件，而各函數回傳皆為Promise，可通過resolve與reject回傳結果，預設{}
  * @example
  *
  * import MqServer from 'w-comor-mqtt/dist/mq-server.umd.js'
