@@ -11,7 +11,7 @@
 
         <script src="https://cdn.jsdelivr.net/npm/wsemi/dist/wsemi.umd.js"></script>
 
-        <script src="dist/mq-client.umd.js"></script>
+        <script src="dist/w-comor-mqtt-client.umd.js"></script>
 
         <script src="https://cdn.jsdelivr.net/npm/w-consolelog/dist/w-consolelog.umd.js"></script>
         <script>
@@ -38,9 +38,9 @@
                 },
             }
 
-            //MqClient
-            let MqClient = window['mq-client']
-            new MqClient(opt)
+            //WComorMqttClient
+            let WComorMqttClient = window['w-comor-mqtt-client']
+            new WComorMqttClient(opt)
                 .then(function(wo) {
                     logData('client web: funcs: ', wo)
 

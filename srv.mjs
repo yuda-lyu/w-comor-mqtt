@@ -1,5 +1,5 @@
-import MqServer from './src/MqServer.mjs'
-//import MqServer from './dist/mq-server.umd.js'
+import WComorMqttServer from './src/WComorMqttServer.mjs'
+//import WComorMqttServer from './dist/w-comor-mqtt-server.umd.js'
 
 function random(min, max) {
     return Math.floor(Math.random() * max) + min
@@ -67,8 +67,8 @@ let opt = {
     },
 }
 
-new MqServer(opt)
+new WComorMqttServer(opt)
 
 opt.port = 8081
 opt.portWeb = 8091
-new MqServer(opt)
+new WComorMqttServer(opt)

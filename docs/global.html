@@ -27,7 +27,7 @@
 
 <nav >
     
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#MqClient">MqClient</a></li><li><a href="global.html#MqServer">MqServer</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#WComorMqttClient">WComorMqttClient</a></li><li><a href="global.html#WComorMqttServer">WComorMqttServer</a></li></ul>
 </nav>
 
 <div id="main">
@@ -124,7 +124,7 @@
 
     
 
-    <h4 class="name" id="MqClient"><span class="type-signature"></span>MqClient<span class="signature">(opt)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+    <h4 class="name" id="WComorMqttClient"><span class="type-signature"></span>WComorMqttClient<span class="signature">(opt)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
 
     
 
@@ -136,7 +136,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="MqClient.mjs.html">MqClient.mjs</a>, <a href="MqClient.mjs.html#line98">line 98</a>
+        <a href="WComorMqttClient.mjs.html">WComorMqttClient.mjs</a>, <a href="WComorMqttClient.mjs.html#line98">line 98</a>
     </li></ul></dd>
     
 
@@ -189,7 +189,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>import MqClient from 'w-comor-mqtt/dist/mq-client.umd.js'//optlet opt = {    url: 'mqtt://localhost:8080',    token: '*',    open: function() {        console.log('client: open')    },    close: function() {        console.log('client: close')    },    error: function(err) {        console.log('client: error:', err)    },    reconn: function() {        console.log('client: reconn')    },}//MqClientnew MqClient(opt)    .then(function(wo) {        console.log('client: funcs: ', wo)        function core(ps) {            wo.group.plus(ps)                .then(function(r) {                    console.log('client: plus(' + JSON.stringify(ps) + ')=' + r)                })                .catch(function(err) {                    console.log('client: plus: catch: ', err)                })            wo.group.div(ps)                .then(function(r) {                    console.log('client: div(' + JSON.stringify(ps) + ')=' + r)                })                .catch(function(err) {                    console.log('client: div: catch: ', err)                })            wo.add(ps)                .then(function(r) {                    console.log(`client: add(${JSON.stringify(ps)})=${r}`)                })                .catch(function(err) {                    console.log('client: add: catch: ', err)                })            wo.minu(ps)                .then(function(r) {                    console.log(`client: minu(${JSON.stringify(ps)})=${r}`)                })                .catch(function(err) {                    console.log('client: minu: catch: ', err)                })        }        let i = 100        setInterval(function() {            i += 1            core({                p1: i,                p2: 10,            })        }, 1000)    })    .catch(function(err) {        console.log('client: catch', err)    })</code></pre>
+    <pre class="prettyprint"><code>import WComorMqttClient from 'w-comor-mqtt/dist/w-comor-mqtt-client.umd.js'//optlet opt = {    url: 'mqtt://localhost:8080',    token: '*',    open: function() {        console.log('client: open')    },    close: function() {        console.log('client: close')    },    error: function(err) {        console.log('client: error:', err)    },    reconn: function() {        console.log('client: reconn')    },}//WComorMqttClientnew WComorMqttClient(opt)    .then(function(wo) {        console.log('client: funcs: ', wo)        function core(ps) {            wo.group.plus(ps)                .then(function(r) {                    console.log('client: plus(' + JSON.stringify(ps) + ')=' + r)                })                .catch(function(err) {                    console.log('client: plus: catch: ', err)                })            wo.group.div(ps)                .then(function(r) {                    console.log('client: div(' + JSON.stringify(ps) + ')=' + r)                })                .catch(function(err) {                    console.log('client: div: catch: ', err)                })            wo.add(ps)                .then(function(r) {                    console.log(`client: add(${JSON.stringify(ps)})=${r}`)                })                .catch(function(err) {                    console.log('client: add: catch: ', err)                })            wo.minu(ps)                .then(function(r) {                    console.log(`client: minu(${JSON.stringify(ps)})=${r}`)                })                .catch(function(err) {                    console.log('client: minu: catch: ', err)                })        }        let i = 100        setInterval(function() {            i += 1            core({                p1: i,                p2: 10,            })        }, 1000)    })    .catch(function(err) {        console.log('client: catch', err)    })</code></pre>
 
 
 
@@ -535,7 +535,7 @@
 
     
 
-    <h4 class="name" id="MqServer"><span class="type-signature"></span>MqServer<span class="signature">(opt)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="WComorMqttServer"><span class="type-signature"></span>WComorMqttServer<span class="signature">(opt)</span><span class="type-signature"></span></h4>
 
     
 
@@ -547,7 +547,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="MqServer.mjs.html">MqServer.mjs</a>, <a href="MqServer.mjs.html#line94">line 94</a>
+        <a href="WComorMqttServer.mjs.html">WComorMqttServer.mjs</a>, <a href="WComorMqttServer.mjs.html#line93">line 93</a>
     </li></ul></dd>
     
 
@@ -600,7 +600,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>import MqServer from 'w-comor-mqtt/dist/mq-server.umd.js'function random(min, max) {    return Math.floor(Math.random() * max) + min}let opt = {    port: 8080, //for mqtt nodejs server    portWeb: 8090, //for mqtt web server    authenticate: function(token) {        //使用token驗證使用者身份        return new Promise(function(resolve, reject) {            setTimeout(function() {                resolve(true)            }, 1000)        })    },    filterFuncs: function(token, funcs) {        //使用token驗證使用者身份與過濾可用funcs        return new Promise(function(resolve, reject) {            funcs = funcs.filter(function(v) {                return v.indexOf('Hide') &lt; 0            })            resolve(funcs)        })    },    onClientChange: function(clients, opt) {        console.log(`Server[port:${opt.port}][port for web:${opt.portWeb}] now clients: ${clients.length}`)    },    funcs: {        'group.plus': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 * p2)                }, random(100, 3000))            })        },        'group.div': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 / p2)                }, random(100, 3000))            })        },        'add': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 + p2)                }, random(100, 3000))            })        },        'addHide': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 + p2)                }, random(100, 3000))            })        },        'minu': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 - p2)                }, random(100, 3000))            })        },    },}new MqServer(opt)</code></pre>
+    <pre class="prettyprint"><code>import WComorMqttServer from 'w-comor-mqtt/dist/w-comor-mqtt-server.umd.js'function random(min, max) {    return Math.floor(Math.random() * max) + min}let opt = {    port: 8080, //for mqtt nodejs server    portWeb: 8090, //for mqtt web server    authenticate: function(token) {        //使用token驗證使用者身份        return new Promise(function(resolve, reject) {            setTimeout(function() {                resolve(true)            }, 1000)        })    },    filterFuncs: function(token, funcs) {        //使用token驗證使用者身份與過濾可用funcs        return new Promise(function(resolve, reject) {            funcs = funcs.filter(function(v) {                return v.indexOf('Hide') &lt; 0            })            resolve(funcs)        })    },    onClientChange: function(clients, opt) {        console.log(`Server[port:${opt.port}][port for web:${opt.portWeb}] now clients: ${clients.length}`)    },    funcs: {        'group.plus': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 * p2)                }, random(100, 3000))            })        },        'group.div': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 / p2)                }, random(100, 3000))            })        },        'add': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 + p2)                }, random(100, 3000))            })        },        'addHide': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 + p2)                }, random(100, 3000))            })        },        'minu': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 - p2)                }, random(100, 3000))            })        },    },}new WComorMqttServer(opt)</code></pre>
 
 
 
@@ -873,7 +873,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Sun Dec 15 2019 13:02:27 GMT+0800 (GMT+08:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Tue Dec 31 2019 13:41:58 GMT+0800 (GMT+08:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

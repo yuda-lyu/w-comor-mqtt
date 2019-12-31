@@ -5,7 +5,7 @@ A websocket communicator in nodejs and browser. Mapping functions from nodejs to
 [![npm version](http://img.shields.io/npm/v/w-comor-mqtt.svg?style=flat)](https://npmjs.org/package/w-comor-mqtt) 
 [![Build Status](https://travis-ci.org/yuda-lyu/w-comor-mqtt.svg?branch=master)](https://travis-ci.org/yuda-lyu/w-comor-mqtt) 
 [![license](https://img.shields.io/npm/l/w-comor-mqtt.svg?style=flat)](https://npmjs.org/package/w-comor-mqtt) 
-[![gzip file size](http://img.badgesize.io/yuda-lyu/w-comor-mqtt/master/dist/mq-server.umd.js.svg?compression=gzip)](https://github.com/yuda-lyu/w-comor-mqtt)
+[![gzip file size](http://img.badgesize.io/yuda-lyu/w-comor-mqtt/master/dist/w-comor-mqtt-server.umd.js.svg?compression=gzip)](https://github.com/yuda-lyu/w-comor-mqtt)
 [![npm download](https://img.shields.io/npm/dt/w-comor-mqtt.svg)](https://npmjs.org/package/w-comor-mqtt) 
 [![jsdelivr download](https://img.shields.io/jsdelivr/npm/hm/w-comor-mqtt.svg)](https://www.jsdelivr.com/package/npm/w-comor-mqtt)
 
@@ -14,22 +14,22 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 
 ## Parts
 `w-comor-mqtt` includes 2 parts: 
-* `mq-server`: for nodejs server
-* `mq-client`: for nodejs and browser client
+* `w-comor-mqtt-server`: for nodejs server
+* `w-comor-mqtt-client`: for nodejs and browser client
 
 ## Installation
 ### Using npm(ES6 module):
-> **Note:** `mq-server` depends on `mosca`.
+> **Note:** `w-comor-mqtt-server` depends on `mosca`.
 
-> **Note:** `mq-client` depends on `mqtt` and `wolfy87-eventemitter`.
+> **Note:** `w-comor-mqtt-client` depends on `mqtt` and `wolfy87-eventemitter`.
 
 ```alias
 npm i w-comor-mqtt
 ```
-#### Example for `mq-server`:
+#### Example for `w-comor-mqtt-server`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/srv.mjs)]
 ```alias
-import MqServer from 'w-comor-mqtt/dist/mq-server.umd.js'
+import WComorMqttServer from 'w-comor-mqtt/dist/w-comor-mqtt-server.umd.js'
 
 function random(min, max) {
     return Math.floor(Math.random() * max) + min
@@ -97,12 +97,12 @@ let opt = {
     },
 }
 
-new MqServer(opt)
+new WComorMqttServer(opt)
 ```
-#### Example for `mq-client`:
+#### Example for `w-comor-mqtt-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/scla.mjs)]
 ```alias
-import MqClient from 'w-comor-mqtt/dist/mq-client.umd.js'
+import WComorMqttClient from 'w-comor-mqtt/dist/w-comor-mqtt-client.umd.js'
 
 //opt
 let opt = {
@@ -122,8 +122,8 @@ let opt = {
     },
 }
 
-//MqClient
-new MqClient(opt)
+//WComorMqttClient
+new WComorMqttClient(opt)
     .then(function(wo) {
         console.log('client nodejs: funcs: ', wo)
         
@@ -174,7 +174,7 @@ new MqClient(opt)
 ```
 
 ### In a browser(UMD module):
-> **Note:** `mq-client` depends on `mqtt`.
+> **Note:** `w-comor-mqtt-client` depends on `mqtt`.
 
 [Optional] Add script with nomodule for IE11.
 ```alias
@@ -184,11 +184,11 @@ new MqClient(opt)
 ```alias
 <script src="https://cdn.jsdelivr.net/npm/mqtt@3.0.0/dist/mqtt.min.js"></script>
 ```
-[Necessary] Add script for mq-client.
+[Necessary] Add script for w-comor-mqtt-client.
 ```alias
-<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.20/dist/mq-client.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.21/dist/w-comor-mqtt-client.umd.js"></script>
 ```
-#### Example for `mq-client`:
+#### Example for `w-comor-mqtt-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/web.html)]
 ```alias
 //opt
@@ -209,9 +209,9 @@ let opt = {
     },
 }
 
-//MqClient
-let MqClient = window['mq-client']
-new MqClient(opt)
+//WComorMqttClient
+let WComorMqttClient = window['w-comor-mqtt-client']
+new WComorMqttClient(opt)
     .then(function(wo) {
         console.log('client web: funcs: ', wo)
         

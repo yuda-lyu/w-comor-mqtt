@@ -1,5 +1,5 @@
-import MqClient from './src/MqClient.mjs'
-//import MqClient from './dist/mq-client.umd.js'
+import WComorMqttClient from './src/WComorMqttClient.mjs'
+//import WComorMqttClient from './dist/w-comor-mqtt-client.umd.js'
 
 let opt = {
     url: 'mqtt://localhost:8081',
@@ -18,7 +18,7 @@ let opt = {
     },
 }
 
-new MqClient(opt)
+new WComorMqttClient(opt)
     .then(function(wo) {
         console.log('client nodejs[port:8081]: funcs: ', wo)
 
