@@ -21,7 +21,7 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 ### Using npm(ES6 module):
 > **Note:** `w-comor-mqtt-server` depends on `mosca`.
 
-> **Note:** `w-comor-mqtt-client` depends on `mqtt` and `wolfy87-eventemitter`.
+> **Note:** `w-comor-mqtt-client` depends on `mqtt`.
 
 ```alias
 npm i w-comor-mqtt
@@ -186,7 +186,7 @@ new WComorMqttClient(opt)
 ```
 [Necessary] Add script for w-comor-mqtt-client.
 ```alias
-<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.23/dist/w-comor-mqtt-client.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.24/dist/w-comor-mqtt-client.umd.js"></script>
 ```
 #### Example for `w-comor-mqtt-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/web.html)]

@@ -1,4 +1,3 @@
-import EventEmitter from 'wolfy87-eventemitter'
 import mqtt from 'mqtt'
 import get from 'lodash/get'
 import set from 'lodash/set'
@@ -6,6 +5,7 @@ import each from 'lodash/each'
 import keys from 'lodash/keys'
 import genPm from 'wsemi/src/genPm.mjs'
 import genID from 'wsemi/src/genID.mjs'
+import Evem from 'wsemi/src/evem.mjs'
 import j2o from 'wsemi/src/j2o.mjs'
 import isfun from 'wsemi/src/isfun.mjs'
 import arrhas from 'wsemi/src/arrhas.mjs'
@@ -103,7 +103,7 @@ function WComorMqttClient(opt) {
 
 
     //ev
-    let ev = new EventEmitter()
+    let ev = new Evem()
 
 
     function NewConn() {
