@@ -15,7 +15,7 @@
 
         <script src="https://cdn.jsdelivr.net/npm/w-consolelog/dist/w-consolelog.umd.js"></script>
         <script>
-            let logData=window['w-consolelog']
+            console.log = window['w-consolelog']
         </script>
         
         <script>
@@ -25,16 +25,16 @@
                 url: 'mqtt://localhost:8090', //for mqtt web server
                 token: '*',
                 open: function() {
-                    logData('client web: open')
+                    console.log('client web: open')
                 },
                 close: function() {
-                    logData('client web: close')
+                    console.log('client web: close')
                 },
                 error: function(err) {
-                    logData('client web: error:', err)
+                    console.log('client web: error:', err)
                 },
                 reconn: function() {
-                    logData('client web: reconn')
+                    console.log('client web: reconn')
                 },
             }
 
@@ -42,36 +42,36 @@
             let WComorMqttClient = window['w-comor-mqtt-client']
             new WComorMqttClient(opt)
                 .then(function(wo) {
-                    logData('client web: funcs: ', wo)
+                    console.log('client web: funcs: ', wo)
 
                     function core(ps) {
                         wo.group.plus(ps)
                             .then(function(r) {
-                                logData('client web: plus(' + JSON.stringify(ps) + ') = ', r)
+                                console.log('client web: plus(' + JSON.stringify(ps) + ') = ', r)
                             })
                             .catch(function(err) {
-                                logData('client web: plus: catch: ', err)
+                                console.log('client web: plus: catch: ', err)
                             })
                         wo.group.div(ps)
                             .then(function(r) {
-                                logData('client web: div(' + JSON.stringify(ps) + ') = ', r)
+                                console.log('client web: div(' + JSON.stringify(ps) + ') = ', r)
                             })
                             .catch(function(err) {
-                                logData('client web: div: catch: ', err)
+                                console.log('client web: div: catch: ', err)
                             })
                         wo.add(ps)
                             .then(function(r) {
-                                logData('client web: add(' + JSON.stringify(ps) + ') = ', r)
+                                console.log('client web: add(' + JSON.stringify(ps) + ') = ', r)
                             })
                             .catch(function(err) {
-                                logData('client web: add: catch: ', err)
+                                console.log('client web: add: catch: ', err)
                             })
                         wo.minu(ps)
                             .then(function(r) {
-                                logData('client web: minu(' + JSON.stringify(ps) + ') = ', r)
+                                console.log('client web: minu(' + JSON.stringify(ps) + ') = ', r)
                             })
                             .catch(function(err) {
-                                logData('client web: minu: catch: ', err)
+                                console.log('client web: minu: catch: ', err)
                             })
                     }
 
@@ -86,7 +86,7 @@
 
                 })
                 .catch(function(err) {
-                    logData('client web: catch: ', err)
+                    console.log('client web: catch: ', err)
                 })
 
         </script>

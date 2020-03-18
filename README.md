@@ -186,7 +186,7 @@ new WComorMqttClient(opt)
 ```
 [Necessary] Add script for w-comor-mqtt-client.
 ```alias
-<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.24/dist/w-comor-mqtt-client.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.25/dist/w-comor-mqtt-client.umd.js"></script>
 ```
 #### Example for `w-comor-mqtt-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/web.html)]
