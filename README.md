@@ -19,9 +19,9 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 
 ## Installation
 ### Using npm(ES6 module):
-> **Note:** `w-comor-mqtt-server` depends on `mosca`.
+> **Note:** `w-comor-mqtt-server` is mainly dependent on `mosca`.
 
-> **Note:** `w-comor-mqtt-client` depends on `mqtt`.
+> **Note:** `w-comor-mqtt-client` is mainly dependent on `mqtt`.
 
 ```alias
 npm i w-comor-mqtt
@@ -174,7 +174,7 @@ new WComorMqttClient(opt)
 ```
 
 ### In a browser(UMD module):
-> **Note:** `w-comor-mqtt-client` depends on `mqtt`.
+> **Note:** `w-comor-mqtt-client` is mainly dependent on `mqtt`.
 
 [Optional] Add script with nomodule for IE11.
 ```alias
