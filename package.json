@@ -1,16 +1,16 @@
 {
   "name": "w-comor-mqtt",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "description": "A mqtt communicator in nodejs and browser. Mapping functions in nodejs to end points.",
   "main": "dist/w-comor-mqtt-server.umd.js",
   "dependencies": {
     "lodash": "^4.17.21",
     "mosca": "^2.8.3",
-    "mqtt": "^4.2.6",
-    "wsemi": "^1.5.77"
+    "mqtt": "^4.2.8",
+    "wsemi": "^1.6.19"
   },
   "devDependencies": {
-    "w-package-tools": "^1.0.54"
+    "w-package-tools": "^1.0.59"
   },
   "scripts": {
     "test": "mocha --parallel --timeout 60000 --experimental-modules --es-module-specifier-resolution=node",
