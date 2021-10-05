@@ -8,7 +8,7 @@ import genID from 'wsemi/src/genID.mjs'
 import Evem from 'wsemi/src/evem.mjs'
 import j2o from 'wsemi/src/j2o.mjs'
 import isfun from 'wsemi/src/isfun.mjs'
-import arrhas from 'wsemi/src/arrhas.mjs'
+import arrHas from 'wsemi/src/arrHas.mjs'
 
 
 /**
@@ -390,7 +390,7 @@ function WComorMqttClient(opt) {
 
             //delete wo funcs
             each(func_old, function(k) {
-                if (!arrhas(func_new, k)) {
+                if (!arrHas(func_new, k)) {
                     delete wo[k]
                 }
             })
