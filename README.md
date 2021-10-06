@@ -3,7 +3,6 @@ A websocket communicator in nodejs and browser. Mapping functions from nodejs to
 
 ![language](https://img.shields.io/badge/language-JavaScript-orange.svg) 
 [![npm version](http://img.shields.io/npm/v/w-comor-mqtt.svg?style=flat)](https://npmjs.org/package/w-comor-mqtt) 
-[![Build Status](https://travis-ci.org/yuda-lyu/w-comor-mqtt.svg?branch=master)](https://travis-ci.org/yuda-lyu/w-comor-mqtt) 
 [![license](https://img.shields.io/npm/l/w-comor-mqtt.svg?style=flat)](https://npmjs.org/package/w-comor-mqtt) 
 [![gzip file size](http://img.badgesize.io/yuda-lyu/w-comor-mqtt/master/dist/w-comor-mqtt-server.umd.js.svg?compression=gzip)](https://github.com/yuda-lyu/w-comor-mqtt)
 [![npm download](https://img.shields.io/npm/dt/w-comor-mqtt.svg)](https://npmjs.org/package/w-comor-mqtt) 
