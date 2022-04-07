@@ -18,7 +18,7 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 
 ## Installation
 ### Using npm(ES6 module):
-> **Note:** `w-comor-mqtt-server` is mainly dependent on `mosca`.
+> **Note:** `w-comor-mqtt-server` is mainly dependent on `net`, `aedes-server-factory` and `aedes`.
 
 > **Note:** `w-comor-mqtt-client` is mainly dependent on `mqtt`.
 
@@ -185,7 +185,7 @@ new WComorMqttClient(opt)
 ```
 [Necessary] Add script for w-comor-mqtt-client.
 ```alias
-<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.30/dist/w-comor-mqtt-client.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.31/dist/w-comor-mqtt-client.umd.js"></script>
 ```
 #### Example for `w-comor-mqtt-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/web.html)]

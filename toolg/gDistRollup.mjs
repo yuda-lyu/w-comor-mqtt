@@ -12,11 +12,15 @@ rollupFiles({
     fdTar,
     nameDistType: 'kebabCase',
     globals: {
-        'mosca': 'mosca',
+        'aedes': 'aedes',
+        'aedes-server-factory': 'aedes-server-factory',
+        'net': 'net',
         'mqtt': 'mqtt',
     },
     external: [
-        'mosca',
+        'aedes',
+        'aedes-server-factory',
+        'net',
         'mqtt',
     ],
 })

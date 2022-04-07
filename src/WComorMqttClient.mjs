@@ -5,7 +5,7 @@ import each from 'lodash/each'
 import keys from 'lodash/keys'
 import genPm from 'wsemi/src/genPm.mjs'
 import genID from 'wsemi/src/genID.mjs'
-import Evem from 'wsemi/src/evem.mjs'
+import evem from 'wsemi/src/evem.mjs'
 import j2o from 'wsemi/src/j2o.mjs'
 import isfun from 'wsemi/src/isfun.mjs'
 import arrHas from 'wsemi/src/arrHas.mjs'
@@ -15,7 +15,7 @@ import arrHas from 'wsemi/src/arrHas.mjs'
  * 建立MQTT使用者(Node.js與Browser)端物件
  *
  * @param {Object} opt 輸入設定參數物件
- * @param {String} [opt.url='mqtt://localhost:8080'] 輸入MQTT伺服器網址，預設為'mqtt://localhost:8080'，若由瀏覽器Browser連線，則需連MQTT Web伺服器
+ * @param {String} [opt.url='mqtt://localhost:8080'] 輸入MQTT伺服器網址，預設為'mqtt://localhost:8080'，若由瀏覽器Browser連線，則需連MQTT WebSocket伺服器
  * @param {String} [opt.token='*'] 輸入使用者認證用token，預設為'*'
  * @param {Function} opt.open 輸入監聽open函數
  * @param {Function} opt.close 輸入監聽close函數
@@ -103,7 +103,7 @@ function WComorMqttClient(opt) {
 
 
     //ev
-    let ev = new Evem()
+    let ev = evem()
 
 
     function NewConn() {
@@ -176,7 +176,7 @@ function WComorMqttClient(opt) {
 
         //connect
         client.on('connect', function () {
-            //console.log('connect')
+            // console.log('connect')
 
             //check
             if (id === idc) {
@@ -188,9 +188,11 @@ function WComorMqttClient(opt) {
                 //subscribe
                 subscribe(topicUQid)
                     .then(function() {
+                        // console.log('subscribe then', topicUQid)
                         return execFunction('getFuncs', null)
                     })
                     .catch(function(err) {
+                        // console.log('subscribe catch', err)
                         if (isfun(opt.error)) {
                             opt.error(err)
                         }
@@ -216,13 +218,14 @@ function WComorMqttClient(opt) {
 
         //publish
         function publish(topicUQid, data) {
+            // console.log('publish', topicUQid)
             let optt = {
                 qos: 2, // 0, 1, or 2
                 retain: false //false不保留，true則將此訊息保留，除了發送給當前訂閱者之外，當有新訂閱者時，則將最後為1的訊息發給該新訂閱者
             }
-            //mqtt: client.publish(topic, message, [options], [callback])
-            //http://www.steves-internet-guide.com/using-node-mqtt-client/
+            // console.log('client.connected', client.connected)
             if (client.connected) {
+                // console.log('client.publish', topicUQid, data)
                 client.publish(topicUQid, JSON.stringify(data), optt)
             }
         }
@@ -263,13 +266,18 @@ function WComorMqttClient(opt) {
 
         //message
         client.on('message', function (topicUQid, message) {
-            //console.log('message', topicUQid, message)
+            // console.log('client message', topicUQid, message)
 
             //check
             if (id === idc) {
 
+                //cm
+                let cm = message.toString('utf8')
+                // console.log('cm', cm)
+
                 //data
-                let data = j2o(message.toString('utf8'))
+                let data = j2o(cm)
+                // console.log('data', data)
 
                 //get sys funcs
                 if (get(data, 'output.sys') === 'sys' && get(data, 'output.funcs')) {
