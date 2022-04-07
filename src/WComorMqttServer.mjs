@@ -8,6 +8,7 @@ import haskey from 'wsemi/src/haskey.mjs'
 import j2o from 'wsemi/src/j2o.mjs'
 import isfun from 'wsemi/src/isfun.mjs'
 import ispint from 'wsemi/src/ispint.mjs'
+import cint from 'wsemi/src/cint.mjs'
 import arrHas from 'wsemi/src/arrHas.mjs'
 
 
@@ -100,6 +101,7 @@ function WComorMqttServer(opt) {
     if (!ispint(port)) {
         port = 8080
     }
+    port = cint(port)
 
 
     //portWeb
@@ -107,6 +109,7 @@ function WComorMqttServer(opt) {
     if (!ispint(portWeb)) {
         portWeb = port + 10
     }
+    portWeb = cint(portWeb)
 
 
     //funcs
