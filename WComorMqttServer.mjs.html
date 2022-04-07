@@ -42,14 +42,16 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import mosca from 'mosca'
-import cloneDeep from 'lodash/cloneDeep'
+            <pre class="prettyprint source linenums"><code>import Aedes from 'aedes'
+import AedesServerFactory from 'aedes-server-factory'
+import net from 'net'
 import keys from 'lodash/keys'
 import get from 'lodash/get'
 import genPm from 'wsemi/src/genPm.mjs'
 import haskey from 'wsemi/src/haskey.mjs'
 import j2o from 'wsemi/src/j2o.mjs'
 import isfun from 'wsemi/src/isfun.mjs'
+import ispint from 'wsemi/src/ispint.mjs'
 import arrHas from 'wsemi/src/arrHas.mjs'
 
 
@@ -137,16 +139,17 @@ import arrHas from 'wsemi/src/arrHas.mjs'
 function WComorMqttServer(opt) {
 
 
-    //cloneDeep
-    opt = cloneDeep(opt)
-
-
-    //default
-    if (!opt.port) {
-        opt.port = 8080
+    //port
+    let port = get(opt, 'port')
+    if (!ispint(port)) {
+        port = 8080
     }
-    if (!opt.portWeb) {
-        opt.portWeb = opt.port + 10
+
+
+    //portWeb
+    let portWeb = get(opt, 'portWeb')
+    if (!ispint(portWeb)) {
+        portWeb = port + 10
     }
 
 
@@ -173,33 +176,14 @@ function WComorMqttServer(opt) {
     }
 
 
-    // //ascoltatore
-    // let ascoltatore = { //數據持久化
-    //     type: 'mongo',
-    //     url: 'mongodb://username:password@127.0.0.1',
-    //     pubsubCollection: 'ascoltatori',
-    //     mongo: {}
-    // }
+    //aedes
+    let aedes = Aedes()
 
 
-    //serverSettings
-    let serverSettings = {
-        port: opt.port, //for server
-        http: {
-            port: opt.portWeb, //for web
-            bundle: true,
-            static: './'
-        },
-        //backend: ascoltatore
-    }
-
-
-    let server = new mosca.Server(serverSettings)
-
-
-    //clientConnected
+    //client
     let clients = []
-    server.on('clientConnected', function(client) {
+    aedes.on('client', function(client) {
+        // console.log('aedes client')
 
         //push
         clients.push(client)
@@ -211,7 +195,8 @@ function WComorMqttServer(opt) {
 
 
     //clientDisconnected
-    server.on('clientDisconnected', function(client) {
+    aedes.on('clientDisconnected', function(client) {
+        // console.log('aedes clientDisconnected')
 
         //刪除client
         clients = clients.filter(function(c) {
@@ -224,9 +209,21 @@ function WComorMqttServer(opt) {
     })
 
 
-    //published, 處理全部message
-    server.on('published', function(packet, client) {
-        //console.log('published', packet)
+    //subscribe
+    aedes.on('subscribe', function (subscriptions, client) {
+        // console.log('aedes subscribe', subscriptions)
+    })
+
+
+    //unsubscribe
+    aedes.on('unsubscribe', function (subscriptions, client) {
+        // console.log('aedes unsubscribe', subscriptions)
+    })
+
+
+    //publish, 處理全部message
+    aedes.on('publish', function(packet, client) {
+        // console.log('aedes publish')
 
         //topic
         let topic = packet.topic
@@ -235,11 +232,13 @@ function WComorMqttServer(opt) {
         let pl = packet.payload.toString('utf8')
 
         //check
+        // console.log(`pl.indexOf('"output"') >= 0`, pl.indexOf('"output"') >= 0)
         if (pl.indexOf('"output"') >= 0) {
             return
         }
 
         //check
+        // console.log(`topic.indexOf('topic|') >= 0`, topic.indexOf('topic|') >= 0)
         if (topic.indexOf('topic|') >= 0) {
             //console.log('get client publish', pl)
 
@@ -251,23 +250,26 @@ function WComorMqttServer(opt) {
 
             //execFunction
             execFunction(topicUQid, data)
+                .catch((err) => {
+                    console.log('execFunction catch', err)
+                })
 
         }
-
 
     })
 
 
     //publish
     function publish(topicUQid, data) {
+        // console.log('publish', topicUQid, data)
         let packet = {
             topic: topicUQid,
             payload: JSON.stringify(data),
             qos: 2, // 0, 1, or 2
             retain: false //false不保留，true則將此訊息保留，除了發送給當前訂閱者之外，當有新訂閱者時，則將最後為1的訊息發給該新訂閱者
         }
-        //mosca: server.publish(packet, client, callback)
-        server.publish(packet, function(err) {
+        aedes.publish(packet, function(err) {
+            // console.log('aedes.publish err', topicUQid, err)
             if (err) {
                 console.log('publish: error:', err)
             }
@@ -277,13 +279,14 @@ function WComorMqttServer(opt) {
 
     //execFunction
     async function execFunction(topicUQid, data) {
-        //console.log(`Server[port:${opt.port}]: `, 'topicUQid: ' + topicUQid, data)
+        // console.log('execFunction', topicUQid, data)
 
         //token
         let token = get(data, 'token', '')
 
         //vd
         let vd = await authenticate(token)
+        // console.log('authenticate', vd, token)
 
         //check
         if (vd) {
@@ -299,20 +302,31 @@ function WComorMqttServer(opt) {
 
                 if (isfun(opt.filterFuncs)) {
                     funcs = await opt.filterFuncs(token, funcs)
+                    // console.log('filterFuncs', funcs)
                 }
 
                 //add output
-                data['output'] = { sys: 'sys', funcs: funcs }
+                data['output'] = { sys: 'sys', funcs }
 
             }
             //call
             else if (arrHas(funcs, func)) {
 
-                //call func in opt.funcs
-                let output = await opt['funcs'][func](input)
+                if (isfun(opt['funcs'][func])) {
 
-                //add output
-                data['output'] = output
+                    //call func in opt.funcs
+                    let output = await opt['funcs'][func](input)
+
+                    //add output
+                    data['output'] = output
+
+                }
+                else {
+
+                    //add output
+                    data['output'] = { err: `${func} is not a function` }
+
+                }
 
             }
             else {
@@ -345,7 +359,7 @@ function WComorMqttServer(opt) {
     function setup() {
 
         //authenticate
-        server.authenticate = async function (client, username, password, callback) {
+        aedes.authenticate = async function (client, username, password, callback) {
             //console.log('authenticate', username, password.toString('utf8'))
 
             //token, from username
@@ -359,11 +373,25 @@ function WComorMqttServer(opt) {
 
         }
 
-        console.log(`Server running at: mqtt://localhost:${opt.port} and [web] mqtt://localhost:${opt.portWeb}`)
-
     }
-    server.on('ready', setup)
+    // server.on('ready', setup)
 
+
+    //serverNode
+    let serverNode = net.createServer(aedes.handle)
+    serverNode.listen(port, function () {
+        setup()
+        console.log(`Server running for node at: mqtt://localhost:${port}`)
+    })
+
+
+    //serverBrowser
+    let serverBrowser = AedesServerFactory.createServer(aedes, {
+        ws: true, //經由websocket提供給瀏覽器端通訊
+    })
+    serverBrowser.listen(portWeb, function () {
+        console.log(`Server running for browser at: mqtt://localhost:${portWeb}`)
+    })
 
 }
 
@@ -383,7 +411,7 @@ export default WComorMqttServer
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.10</a> on Thu Apr 07 2022 16:33:04 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.10</a> on Thu Apr 07 2022 21:31:49 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
