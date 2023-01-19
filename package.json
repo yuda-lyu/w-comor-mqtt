@@ -1,17 +1,16 @@
 {
   "name": "w-comor-mqtt",
-  "version": "1.0.32",
-  "description": "A mqtt communicator in nodejs and browser. Mapping functions in nodejs to end points.",
+  "version": "1.0.33",
   "main": "dist/w-comor-mqtt-server.umd.js",
   "dependencies": {
-    "aedes": "^0.46.3",
+    "aedes": "^0.48.1",
     "aedes-server-factory": "^0.2.1",
     "lodash": "^4.17.21",
     "mqtt": "^4.3.7",
-    "wsemi": "^1.6.54"
+    "wsemi": "^1.6.87"
   },
   "devDependencies": {
-    "w-package-tools": "^1.0.65"
+    "w-package-tools": "^1.0.66"
   },
   "scripts": {
     "test": "mocha --parallel --timeout 60000 --experimental-modules --es-module-specifier-resolution=node",
@@ -32,9 +31,5 @@
     "RPC"
   ],
   "author": "yuda-lyu(semisphere)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/yuda-lyu/w-comor-mqtt/issues"
-  },
-  "homepage": "https://github.com/yuda-lyu/w-comor-mqtt#readme"
+  "license": "MIT"
 }
