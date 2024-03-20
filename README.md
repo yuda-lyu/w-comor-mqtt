@@ -6,6 +6,7 @@ A websocket communicator in nodejs and browser. Mapping functions from nodejs to
 [![license](https://img.shields.io/npm/l/w-comor-mqtt.svg?style=flat)](https://npmjs.org/package/w-comor-mqtt) 
 [![gzip file size](http://img.badgesize.io/yuda-lyu/w-comor-mqtt/master/dist/w-comor-mqtt-server.umd.js.svg?compression=gzip)](https://github.com/yuda-lyu/w-comor-mqtt)
 [![npm download](https://img.shields.io/npm/dt/w-comor-mqtt.svg)](https://npmjs.org/package/w-comor-mqtt) 
+[![npm download](https://img.shields.io/npm/dm/w-comor-mqtt.svg)](https://npmjs.org/package/w-comor-mqtt) 
 [![jsdelivr download](https://img.shields.io/jsdelivr/npm/hm/w-comor-mqtt.svg)](https://www.jsdelivr.com/package/npm/w-comor-mqtt)
 
 ## Documentation
@@ -185,7 +186,7 @@ new WComorMqttClient(opt)
 ```
 [Necessary] Add script for w-comor-mqtt-client.
 ```alias
-<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.34/dist/w-comor-mqtt-client.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.35/dist/w-comor-mqtt-client.umd.js"></script>
 ```
 #### Example for `w-comor-mqtt-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/web.html)]
