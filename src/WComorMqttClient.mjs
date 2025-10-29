@@ -241,9 +241,9 @@ function WComorMqttClient(opt) {
             //msg
             let msg = {
                 token: opt.token,
-                _id: _id,
-                func: func,
-                input: input,
+                _id,
+                func,
+                input,
             }
 
             //pub

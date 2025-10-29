@@ -73,4 +73,4 @@ opt.port = 8081
 opt.portWeb = 8091
 new WComorMqttServer(opt)
 
-//node --experimental-modules --es-module-specifier-resolution=node srv.mjs
+//node srv.mjs

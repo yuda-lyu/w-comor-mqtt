@@ -4,7 +4,6 @@ A websocket communicator in nodejs and browser. Mapping functions from nodejs to
 ![language](https://img.shields.io/badge/language-JavaScript-orange.svg) 
 [![npm version](http://img.shields.io/npm/v/w-comor-mqtt.svg?style=flat)](https://npmjs.org/package/w-comor-mqtt) 
 [![license](https://img.shields.io/npm/l/w-comor-mqtt.svg?style=flat)](https://npmjs.org/package/w-comor-mqtt) 
-[![gzip file size](http://img.badgesize.io/yuda-lyu/w-comor-mqtt/master/dist/w-comor-mqtt-server.umd.js.svg?compression=gzip)](https://github.com/yuda-lyu/w-comor-mqtt)
 [![npm download](https://img.shields.io/npm/dt/w-comor-mqtt.svg)](https://npmjs.org/package/w-comor-mqtt) 
 [![npm download](https://img.shields.io/npm/dm/w-comor-mqtt.svg)](https://npmjs.org/package/w-comor-mqtt) 
 [![jsdelivr download](https://img.shields.io/jsdelivr/npm/hm/w-comor-mqtt.svg)](https://www.jsdelivr.com/package/npm/w-comor-mqtt)
@@ -18,14 +17,12 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 * `w-comor-mqtt-client`: for nodejs and browser client
 
 ## Installation
+
 ### Using npm(ES6 module):
-> **Note:** `w-comor-mqtt-server` is mainly dependent on `net`, `aedes-server-factory` and `aedes`.
-
-> **Note:** `w-comor-mqtt-client` is mainly dependent on `mqtt`.
-
 ```alias
 npm i w-comor-mqtt
 ```
+
 #### Example for `w-comor-mqtt-server`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/srv.mjs)]
 ```alias
@@ -99,6 +96,7 @@ let opt = {
 
 new WComorMqttServer(opt)
 ```
+
 #### Example for `w-comor-mqtt-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/scla.mjs)]
 ```alias
@@ -174,20 +172,17 @@ new WComorMqttClient(opt)
 ```
 
 ### In a browser(UMD module):
-> **Note:** `w-comor-mqtt-client` is mainly dependent on `mqtt`.
 
-[Optional] Add script with nomodule for IE11.
-```alias
-<script nomodule src="https://cdn.jsdelivr.net/npm/@babel/polyfill/dist/polyfill.min.js"></script>
-```
-[Necessary] Add script for mqtt.
+Add script for mqtt.
 ```alias
 <script src="https://cdn.jsdelivr.net/npm/mqtt@3.0.0/dist/mqtt.min.js"></script>
 ```
-[Necessary] Add script for w-comor-mqtt-client.
+
+Add script for w-comor-mqtt-client.
 ```alias
 <script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.36/dist/w-comor-mqtt-client.umd.js"></script>
 ```
+
 #### Example for `w-comor-mqtt-client`:
 > **Link:** [[dev source code](https://github.com/yuda-lyu/w-comor-mqtt/blob/master/web.html)]
 ```alias
