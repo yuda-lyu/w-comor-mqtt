@@ -1,16 +1,16 @@
 {
   "name": "w-comor-mqtt",
-  "version": "1.0.36",
+  "version": "1.0.37",
   "main": "dist/w-comor-mqtt-server.umd.js",
   "dependencies": {
     "aedes": "^0.51.0",
     "aedes-server-factory": "^0.2.1",
-    "lodash-es": "^4.17.21",
+    "lodash-es": "^4.18.1",
     "mqtt": "^5.5.0",
-    "wsemi": "^1.7.49"
+    "wsemi": "^1.8.66"
   },
   "devDependencies": {
-    "w-package-tools": "^1.0.75"
+    "w-package-tools": "^1.1.11"
   },
   "scripts": {
     "test": "mocha --parallel --timeout 60000",
