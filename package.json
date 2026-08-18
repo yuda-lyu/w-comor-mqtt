@@ -1,12 +1,12 @@
 {
   "name": "w-comor-mqtt",
-  "version": "1.0.42",
+  "version": "1.0.43",
   "main": "dist/w-comor-mqtt-server.umd.js",
   "dependencies": {
     "aedes": "^0.51.0",
     "aedes-server-factory": "^0.2.1",
     "mqtt": "^5.5.0",
-    "wsemi": "^1.8.75"
+    "wsemi": "^1.8.76"
   },
   "devDependencies": {
     "w-package-tools": "^1.1.12"
