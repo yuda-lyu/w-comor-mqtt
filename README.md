@@ -180,7 +180,7 @@ Add script for mqtt.
 
 Add script for w-comor-mqtt-client.
 ```alias
-<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.41/dist/w-comor-mqtt-client.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/w-comor-mqtt@1.0.42/dist/w-comor-mqtt-client.umd.js"></script>
 ```
 
 #### Example for `w-comor-mqtt-client`:
