@@ -1,5 +1,5 @@
 /*!
- * w-comor-mqtt-server v1.1.4
+ * w-comor-mqtt-server v1.1.5
  * (c) 2018-2021 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
