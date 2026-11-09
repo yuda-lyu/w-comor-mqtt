@@ -146,7 +146,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WComorMqttClient.mjs.html">WComorMqttClient.mjs</a>, <a href="WComorMqttClient.mjs.html#line98">line 98</a>
+        <a href="WComorMqttClient.mjs.html">WComorMqttClient.mjs</a>, <a href="WComorMqttClient.mjs.html#line99">line 99</a>
     </li></ul></dd>
     
 
@@ -193,7 +193,7 @@
 
     <h5 class="h5-examples">Example</h5>
     
-    <pre class="prettyprint"><code>import WComorMqttClient from 'w-comor-mqtt/dist/w-comor-mqtt-client.umd.js'//optlet opt = {    url: 'mqtt://localhost:8080',    token: '*',    open: function() {        console.log('client: open')    },    close: function() {        console.log('client: close')    },    error: function(err) {        console.log('client: error:', err)    },    reconn: function() {        console.log('client: reconn')    },}//WComorMqttClientnew WComorMqttClient(opt)    .then(function(wo) {        console.log('client: funcs: ', wo)        function core(ps) {            wo.group.plus(ps)                .then(function(r) {                    console.log('client: plus(' + JSON.stringify(ps) + ')=' + r)                })                .catch(function(err) {                    console.log('client: plus: catch: ', err)                })            wo.group.div(ps)                .then(function(r) {                    console.log('client: div(' + JSON.stringify(ps) + ')=' + r)                })                .catch(function(err) {                    console.log('client: div: catch: ', err)                })            wo.add(ps)                .then(function(r) {                    console.log(`client: add(${JSON.stringify(ps)})=${r}`)                })                .catch(function(err) {                    console.log('client: add: catch: ', err)                })            wo.minu(ps)                .then(function(r) {                    console.log(`client: minu(${JSON.stringify(ps)})=${r}`)                })                .catch(function(err) {                    console.log('client: minu: catch: ', err)                })        }        let i = 100        setInterval(function() {            i += 1            core({                p1: i,                p2: 10,            })        }, 1000)    })    .catch(function(err) {        console.log('client: catch', err)    })</code></pre>
+    <pre class="prettyprint"><code>import WComorMqttClient from 'w-comor-mqtt/dist/w-comor-mqtt-client.umd.js'//optlet opt = {    url: 'mqtt://localhost:8080',    token: '*',    open: function() {        console.log('client: open')    },    close: function() {        console.log('client: close')    },    error: function(err) {        console.log('client: error:', err)    },    reconn: function() {        console.log('client: reconn')    },}//WComorMqttClient, 保留Promise之參考則可呼叫client.close()關閉使用者端let client = new WComorMqttClient(opt)client    .then(function(wo) {        console.log('client: funcs: ', wo)        function core(ps) {            wo.group.plus(ps)                .then(function(r) {                    console.log('client: plus(' + JSON.stringify(ps) + ')=' + r)                })                .catch(function(err) {                    console.log('client: plus: catch: ', err)                })            wo.group.div(ps)                .then(function(r) {                    console.log('client: div(' + JSON.stringify(ps) + ')=' + r)                })                .catch(function(err) {                    console.log('client: div: catch: ', err)                })            wo.add(ps)                .then(function(r) {                    console.log(`client: add(${JSON.stringify(ps)})=${r}`)                })                .catch(function(err) {                    console.log('client: add: catch: ', err)                })            wo.minu(ps)                .then(function(r) {                    console.log(`client: minu(${JSON.stringify(ps)})=${r}`)                })                .catch(function(err) {                    console.log('client: minu: catch: ', err)                })        }        let i = 100        setInterval(function() {            i += 1            core({                p1: i,                p2: 10,            })        }, 1000)    })    .catch(function(err) {        console.log('client: catch', err)    })</code></pre>
 
 
 
@@ -520,7 +520,7 @@
 
         
 <div class="param-desc">
-    <p>回傳Promise，resolve為映射伺服器端可用函數之物件，各函數輸入皆為單一物件，各函數回傳皆為Promise，用resolve與reject處理回傳結果</p>
+    <p>回傳Promise，resolve為映射伺服器端可用函數之物件，各函數輸入皆為單一物件，各函數回傳皆為Promise，用resolve與reject處理回傳結果。呼叫之reject之err為Error物件，err.code可辨識原因：伺服器端函數拒絕或拋錯時為'W_COMOR_REMOTE_ERROR'(err.message為其訊息，另有err.remoteName、err.remoteCode)，使用者端斷線期間呼叫或等待回覆時斷線為'W_COMOR_DISCONNECTED'(不排隊，立即失敗)，已close為'W_COMOR_CLOSED'，輸入無法序列化為'W_COMOR_INVALID_INPUT'。此Promise另帶close函數(async)，呼叫後停止重連、使等待回覆之呼叫以'W_COMOR_CLOSED'失敗、結束全部連線，重複呼叫僅關閉一次，close後不再觸發open/close/error/reconn回調；請先保留此Promise之參考再接.then</p>
 </div>
 
 
@@ -547,7 +547,7 @@
 
     
 
-    <h4 class="name" id="WComorMqttServer"><span class="type-signature"></span>WComorMqttServer<span class="signature">(opt)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="WComorMqttServer"><span class="type-signature"></span>WComorMqttServer<span class="signature">(opt)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
 
     
 
@@ -563,7 +563,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WComorMqttServer.mjs.html">WComorMqttServer.mjs</a>, <a href="WComorMqttServer.mjs.html#line96">line 96</a>
+        <a href="WComorMqttServer.mjs.html">WComorMqttServer.mjs</a>, <a href="WComorMqttServer.mjs.html#line101">line 101</a>
     </li></ul></dd>
     
 
@@ -610,7 +610,78 @@
 
     <h5 class="h5-examples">Example</h5>
     
-    <pre class="prettyprint"><code>import WComorMqttServer from 'w-comor-mqtt/dist/w-comor-mqtt-server.umd.js'function random(min, max) {    return Math.floor(Math.random() * max) + min}let opt = {    port: 8080, //for mqtt nodejs server    portWeb: 8090, //for mqtt web server    authenticate: function(token) {        //使用token驗證使用者身份        return new Promise(function(resolve, reject) {            setTimeout(function() {                resolve(true)            }, 1000)        })    },    filterFuncs: function(token, funcs) {        //使用token驗證使用者身份與過濾可用funcs        return new Promise(function(resolve, reject) {            funcs = funcs.filter(function(v) {                return v.indexOf('Hide') &lt; 0            })            resolve(funcs)        })    },    onClientChange: function(clients, opt) {        console.log(`Server[port:${opt.port}][port for web:${opt.portWeb}] now clients: ${clients.length}`)    },    funcs: {        'group.plus': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 * p2)                }, random(100, 3000))            })        },        'group.div': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 / p2)                }, random(100, 3000))            })        },        'add': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 + p2)                }, random(100, 3000))            })        },        'addHide': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 + p2)                }, random(100, 3000))            })        },        'minu': function({ p1, p2 }) {            return new Promise(function(resolve, reject) {                setTimeout(function() {                    resolve(p1 - p2)                }, random(100, 3000))            })        },    },}new WComorMqttServer(opt)</code></pre>
+    <pre class="prettyprint"><code>import WComorMqttServer from 'w-comor-mqtt/dist/w-comor-mqtt-server.umd.js'
+
+function random(min, max) {
+    return Math.floor(Math.random() * max) + min
+}
+
+let opt = {
+    port: 8080, //for mqtt nodejs server
+    portWeb: 8090, //for mqtt web server
+    authenticate: function(token) {
+        //使用token驗證使用者身份
+        return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+                resolve(true)
+            }, 1000)
+        })
+    },
+    filterFuncs: function(token, funcs) {
+        //使用token驗證使用者身份與過濾可用funcs
+        return new Promise(function(resolve, reject) {
+            funcs = funcs.filter(function(v) {
+                return v.indexOf('Hide') &lt; 0
+            })
+            resolve(funcs)
+        })
+    },
+    onClientChange: function(clients, opt) {
+        console.log(`Server[port:${opt.port}][port for web:${opt.portWeb}] now clients: ${clients.length}`)
+    },
+    funcs: {
+        'group.plus': function({ p1, p2 }) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    resolve(p1 * p2)
+                }, random(100, 3000))
+            })
+        },
+        'group.div': function({ p1, p2 }) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    resolve(p1 / p2)
+                }, random(100, 3000))
+            })
+        },
+        'add': function({ p1, p2 }) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    resolve(p1 + p2)
+                }, random(100, 3000))
+            })
+        },
+        'addHide': function({ p1, p2 }) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    resolve(p1 + p2)
+                }, random(100, 3000))
+            })
+        },
+        'minu': function({ p1, p2 }) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    resolve(p1 - p2)
+                }, random(100, 3000))
+            })
+        },
+    },
+}
+
+new WComorMqttServer(opt)
+    .then(function(srv) {
+        //srv.close()可關閉伺服器
+    })</code></pre>
 
 
 
@@ -865,6 +936,29 @@
 
 
 
+<h5 class="h5-returns">Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>回傳Promise，於兩個port皆開始監聽後resolve為伺服器控制物件{ port, portWeb, close }，其中close為async函數，會關閉全部使用者端連線與兩個port，重複呼叫僅關閉一次；若port被占用等原因無法監聽則reject</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -888,7 +982,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Mon Nov 09 2026 10:44:06 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Tue Nov 10 2026 00:04:02 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
