@@ -1,4 +1,4 @@
-import Aedes from 'aedes'
+import { Aedes } from 'aedes'
 import AedesServerFactory from 'aedes-server-factory'
 import net from 'net'
 import keys from 'lodash-es/keys.js'
@@ -7,6 +7,7 @@ import genPm from 'wsemi/src/genPm.mjs'
 import haskey from 'wsemi/src/haskey.mjs'
 import j2o from 'wsemi/src/j2o.mjs'
 import isfun from 'wsemi/src/isfun.mjs'
+import isobj from 'wsemi/src/isobj.mjs'
 import ispint from 'wsemi/src/ispint.mjs'
 import cint from 'wsemi/src/cint.mjs'
 import arrHas from 'wsemi/src/arrHas.mjs'
@@ -20,6 +21,7 @@ import arrHas from 'wsemi/src/arrHas.mjs'
  * @param {Integer} [opt.portWeb=opt.port+10] 輸入MQTT提供給web服務的port，預設為opt.port+10，也就是8090
  * @param {Function} opt.authenticate 輸入使用者身份認證函數，供伺服器端驗證之用，函數會傳入使用者端連線之token參數，回傳為Promise，resolve(true)為驗證通過，resolve(false)為驗證不通過
  * @param {Object} [opt.funcs={}] 輸入伺服器端供使用者端呼叫之函數物件，各key為函數名稱，對應value為函數本體。各函數之輸入需為單一物件，而各函數回傳皆為Promise，可通過resolve與reject回傳結果，預設{}
+ * @returns {Promise} 回傳Promise，於兩個port皆開始監聽後resolve為伺服器控制物件{ port, portWeb, close }，其中close為async函數，會關閉全部使用者端連線與兩個port，重複呼叫僅關閉一次；若port被占用等原因無法監聽則reject
  * @example
  *
  * import WComorMqttServer from 'w-comor-mqtt/dist/w-comor-mqtt-server.umd.js'
@@ -91,6 +93,9 @@ import arrHas from 'wsemi/src/arrHas.mjs'
  * }
  *
  * new WComorMqttServer(opt)
+ *     .then(function(srv) {
+ *         //srv.close()可關閉伺服器
+ *     })
  *
  */
 function WComorMqttServer(opt) {
@@ -112,10 +117,44 @@ function WComorMqttServer(opt) {
     portWeb = cint(portWeb)
 
 
-    //funcs
+    //funcs, 全部可用函數名稱, 僅於此處賦值, 之後不再改動(各token可用之函數另由getAllowedFuncs依token取得)
     let funcs = []
     if (haskey(opt, 'funcs')) {
         funcs = keys(opt['funcs'])
+    }
+
+
+    //getAllowedFuncs, 依token取得該token可用之函數名稱, 過濾結果只對該token有效, 傳入filterFuncs者為複本故其就地修改不影響共用之funcs
+    async function getAllowedFuncs(token) {
+        if (isfun(opt.filterFuncs)) {
+            return await opt.filterFuncs(token, funcs.slice())
+        }
+        return funcs
+    }
+
+
+    //packErr, 把函數拒絕之錯誤轉為可傳輸之物件, 不含stack
+    function packErr(err) {
+        let r = { err: '' }
+        if (err instanceof Error) {
+            r.err = String(err.message) || String(err.name)
+            r.name = String(err.name)
+            if (typeof err.code === 'string' || typeof err.code === 'number') {
+                r.code = err.code
+            }
+        }
+        else if (typeof err === 'string') {
+            r.err = err
+        }
+        else {
+            try {
+                r.err = JSON.stringify(err)
+            }
+            catch (e) {
+                r.err = String(err)
+            }
+        }
+        return r
     }
 
 
@@ -135,77 +174,89 @@ function WComorMqttServer(opt) {
     }
 
 
-    //aedes
-    let aedes = Aedes()
+    //aedes, aedes 1.x須經Aedes.createBroker非同步建立, 於core內賦值
+    let aedes = null
 
 
-    //client
+    //clients
     let clients = []
-    aedes.on('client', function(client) {
-        // console.log('aedes client')
-
-        //push
-        clients.push(client)
-        if (isfun(opt.onClientChange)) {
-            opt.onClientChange(clients, opt)
-        }
-
-    })
 
 
-    //clientDisconnected
-    aedes.on('clientDisconnected', function(client) {
-        // console.log('aedes clientDisconnected')
+    //bindBroker, 綁定aedes事件
+    function bindBroker() {
 
-        //刪除client
-        clients = clients.filter(function(c) {
-            return c !== client
+        //client
+        aedes.on('client', function(client) {
+            // console.log('aedes client')
+
+            //push
+            clients.push(client)
+            if (isfun(opt.onClientChange)) {
+                opt.onClientChange(clients, opt)
+            }
+
         })
-        if (isfun(opt.onClientChange)) {
-            opt.onClientChange(clients, opt)
-        }
-
-    })
 
 
-    //subscribe
-    aedes.on('subscribe', function (subscriptions, client) {
-        // console.log('aedes subscribe', subscriptions)
-    })
+        //clientDisconnect, aedes 0.x與1.x事件名皆為clientDisconnect
+        aedes.on('clientDisconnect', function(client) {
+            // console.log('aedes clientDisconnect')
+
+            //刪除client
+            clients = clients.filter(function(c) {
+                return c !== client
+            })
+            if (isfun(opt.onClientChange)) {
+                opt.onClientChange(clients, opt)
+            }
+
+        })
 
 
-    //unsubscribe
-    aedes.on('unsubscribe', function (subscriptions, client) {
-        // console.log('aedes unsubscribe', subscriptions)
-    })
+        //subscribe
+        aedes.on('subscribe', function (subscriptions, client) {
+            // console.log('aedes subscribe', subscriptions)
+        })
 
 
-    //publish, 處理全部message
-    aedes.on('publish', function(packet, client) {
-        // console.log('aedes publish')
+        //unsubscribe
+        aedes.on('unsubscribe', function (subscriptions, client) {
+            // console.log('aedes unsubscribe', subscriptions)
+        })
 
-        //topic
-        let topic = packet.topic
 
-        //pl
-        let pl = packet.payload.toString('utf8')
+        //publish, 處理全部message
+        aedes.on('publish', function(packet, client) {
+            // console.log('aedes publish')
 
-        //check
-        // console.log(`pl.indexOf('"output"') >= 0`, pl.indexOf('"output"') >= 0)
-        if (pl.indexOf('"output"') >= 0) {
-            return
-        }
+            //topic
+            let topic = packet.topic
 
-        //check
-        // console.log(`topic.indexOf('topic|') >= 0`, topic.indexOf('topic|') >= 0)
-        if (topic.indexOf('topic|') >= 0) {
+            //check, 只處理使用者端請求用之topic
+            // console.log(`topic.indexOf('topic|') >= 0`, topic.indexOf('topic|') >= 0)
+            if (topic.indexOf('topic|') < 0) {
+                return
+            }
+
+            //pl
+            let pl = packet.payload.toString('utf8')
             //console.log('get client publish', pl)
-
-            //topicUQid
-            let topicUQid = topic
 
             //data
             let data = j2o(pl)
+
+            //check, 請求須為物件, 非物件者不處理(回覆後再被當作請求處理會形成無窮迴圈)
+            if (!isobj(data)) {
+                return
+            }
+
+            //check, 伺服器自己發佈之回覆(頂層含output鍵)不再處理, 以解析後之頂層鍵判斷, 故請求之輸入內容含"output"字樣不受影響
+            if (Object.hasOwn(data, 'output')) {
+                return
+            }
+
+            //topicUQid
+            let topicUQid = topic
 
             //execFunction
             execFunction(topicUQid, data)
@@ -213,17 +264,36 @@ function WComorMqttServer(opt) {
                     console.log('execFunction catch', err)
                 })
 
-        }
+        })
 
-    })
+    }
 
 
     //publish
     function publish(topicUQid, data) {
         // console.log('publish', topicUQid, data)
+
+        //check, broker已關閉(例如函數執行期間伺服器被close)則無對象可回覆
+        if (aedes.closed) {
+            return
+        }
+
+        //payload, 輸出無法序列化(如BigInt、循環參照)時改回傳拒絕, 避免使用者端永遠等不到回覆
+        let payload = ''
+        try {
+            payload = JSON.stringify(data)
+        }
+        catch (err) {
+            payload = JSON.stringify({
+                _id: data['_id'],
+                output: { err: `can not serialize output: ${err.message}` },
+                reject: true,
+            })
+        }
+
         let packet = {
             topic: topicUQid,
-            payload: JSON.stringify(data),
+            payload,
             qos: 2, // 0, 1, or 2
             retain: false //false不保留，true則將此訊息保留，除了發送給當前訂閱者之外，當有新訂閱者時，則將最後為1的訊息發給該新訂閱者
         }
@@ -256,43 +326,54 @@ function WComorMqttServer(opt) {
             //input
             let input = get(data, 'input')
 
-            //getFuncs
-            if (func === 'getFuncs') {
+            //try, 取得可用函數與執行函數時之拒絕或拋錯, 以reject旗標回覆, 使用者端之呼叫以該錯誤reject, 不使其永遠等不到回覆
+            try {
 
-                if (isfun(opt.filterFuncs)) {
-                    funcs = await opt.filterFuncs(token, funcs)
-                    // console.log('filterFuncs', funcs)
-                }
+                //allowed, 該token可用之函數, 不影響其他token
+                let allowed = await getAllowedFuncs(token)
+                // console.log('getAllowedFuncs', token, allowed)
 
-                //add output
-                data['output'] = { sys: 'sys', funcs }
-
-            }
-            //call
-            else if (arrHas(funcs, func)) {
-
-                if (isfun(opt['funcs'][func])) {
-
-                    //call func in opt.funcs
-                    let output = await opt['funcs'][func](input)
+                //getFuncs
+                if (func === 'getFuncs') {
 
                     //add output
-                    data['output'] = output
+                    data['output'] = { sys: 'sys', funcs: allowed }
+
+                }
+                //call, 須同時為opt.funcs之函數名稱且為該token可用者
+                else if (arrHas(funcs, func) && arrHas(allowed, func)) {
+
+                    if (isfun(opt['funcs'][func])) {
+
+                        //call func in opt.funcs
+                        let output = await opt['funcs'][func](input)
+
+                        //add output, undefined無法經JSON傳輸, 轉為null使回覆必含output鍵
+                        data['output'] = (output === undefined) ? null : output
+
+                    }
+                    else {
+
+                        //add output
+                        data['output'] = { err: `${func} is not a function` }
+
+                    }
 
                 }
                 else {
+                    //publish no func
 
                     //add output
-                    data['output'] = { err: `${func} is not a function` }
+                    data['output'] = { err: `can not find: ${func}` }
 
                 }
 
             }
-            else {
-                //publish no func
+            catch (err) {
 
                 //add output
-                data['output'] = { err: `can not find: ${func}` }
+                data['output'] = packErr(err)
+                data['reject'] = true
 
             }
 
@@ -314,45 +395,114 @@ function WComorMqttServer(opt) {
     }
 
 
-    //setup
-    function setup() {
+    //listen, 開始監聽, 成功時resolve, 失敗(如port被占用)時reject
+    function listen(server, p) {
+        return new Promise(function(resolve, reject) {
+            function onError(err) {
+                server.removeListener('listening', onListening)
+                reject(err)
+            }
+            function onListening() {
+                server.removeListener('error', onError)
+                resolve()
+            }
+            server.once('error', onError)
+            server.once('listening', onListening)
+            server.listen(p)
+        })
+    }
 
-        //authenticate
-        aedes.authenticate = async function (client, username, password, callback) {
-            //console.log('authenticate', username, password.toString('utf8'))
 
-            //token, from username
-            let token = username
+    //closeServer, 停止接受新連線, 並待現有連線結束後resolve
+    function closeServer(server) {
+        return new Promise(function(resolve) {
+            if (!server.listening) {
+                resolve()
+                return
+            }
+            server.close(function() {
+                resolve()
+            })
+        })
+    }
 
-            //vd
-            let vd = await authenticate(token)
 
-            //callback
-            callback(null, vd)
+    //core
+    async function core() {
 
+        //aedes, authenticate於建立時給予, 不留待後續賦值之空窗
+        aedes = await Aedes.createBroker({
+            authenticate: function (client, username, password, callback) {
+                //console.log('authenticate', username, password.toString('utf8'))
+
+                //token, from username
+                let token = username
+
+                //vd
+                authenticate(token)
+                    .then(function(vd) {
+                        callback(null, vd)
+                    })
+
+            },
+        })
+
+        //bindBroker
+        bindBroker()
+
+        //serverNode
+        let serverNode = net.createServer(aedes.handle)
+
+        //serverBrowser
+        let serverBrowser = AedesServerFactory.createServer(aedes, {
+            ws: true, //經由websocket提供給瀏覽器端通訊
+        })
+
+        //close
+        let pmClose = null
+        function close() {
+            if (pmClose === null) {
+                pmClose = (async function() {
+
+                    //先停止接受新連線
+                    let pmNode = closeServer(serverNode)
+                    let pmBrowser = closeServer(serverBrowser)
+
+                    //關閉aedes並中斷全部使用者端連線
+                    await new Promise(function(resolve) {
+                        aedes.close(function() {
+                            resolve()
+                        })
+                    })
+
+                    //待兩個server之連線皆結束
+                    if (isfun(serverBrowser.closeAllConnections)) {
+                        serverBrowser.closeAllConnections()
+                    }
+                    await Promise.all([pmNode, pmBrowser])
+
+                })()
+            }
+            return pmClose
         }
 
+        //listen
+        try {
+            await listen(serverNode, port)
+            console.log(`Server running for node at: mqtt://localhost:${port}`)
+            await listen(serverBrowser, portWeb)
+            console.log(`Server running for browser at: mqtt://localhost:${portWeb}`)
+        }
+        catch (err) {
+            await close()
+            throw err
+        }
+
+        return { port, portWeb, close }
     }
-    // server.on('ready', setup)
 
 
-    //serverNode
-    let serverNode = net.createServer(aedes.handle)
-    serverNode.listen(port, function () {
-        setup()
-        console.log(`Server running for node at: mqtt://localhost:${port}`)
-    })
-
-
-    //serverBrowser
-    let serverBrowser = AedesServerFactory.createServer(aedes, {
-        ws: true, //經由websocket提供給瀏覽器端通訊
-    })
-    serverBrowser.listen(portWeb, function () {
-        console.log(`Server running for browser at: mqtt://localhost:${portWeb}`)
-    })
-
-
+    return core()
 }
 
 

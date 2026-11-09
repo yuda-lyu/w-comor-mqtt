@@ -21,7 +21,7 @@ import arrHas from 'wsemi/src/arrHas.mjs'
  * @param {Function} opt.close 輸入監聽close函數
  * @param {Function} opt.error 輸入監聽error函數
  * @param {Function} opt.reconn 輸入監聽reconn函數
- * @returns {Promise} 回傳Promise，resolve為映射伺服器端可用函數之物件，各函數輸入皆為單一物件，各函數回傳皆為Promise，用resolve與reject處理回傳結果
+ * @returns {Promise} 回傳Promise，resolve為映射伺服器端可用函數之物件，各函數輸入皆為單一物件，各函數回傳皆為Promise，用resolve與reject處理回傳結果。呼叫之reject之err為Error物件，err.code可辨識原因：伺服器端函數拒絕或拋錯時為'W_COMOR_REMOTE_ERROR'(err.message為其訊息，另有err.remoteName、err.remoteCode)，使用者端斷線期間呼叫或等待回覆時斷線為'W_COMOR_DISCONNECTED'(不排隊，立即失敗)，已close為'W_COMOR_CLOSED'，輸入無法序列化為'W_COMOR_INVALID_INPUT'。此Promise另帶close函數(async)，呼叫後停止重連、使等待回覆之呼叫以'W_COMOR_CLOSED'失敗、結束全部連線，重複呼叫僅關閉一次，close後不再觸發open/close/error/reconn回調；請先保留此Promise之參考再接.then
  * @example
  *
  * import WComorMqttClient from 'w-comor-mqtt/dist/w-comor-mqtt-client.umd.js'
@@ -44,8 +44,9 @@ import arrHas from 'wsemi/src/arrHas.mjs'
  *     },
  * }
  *
- * //WComorMqttClient
- * new WComorMqttClient(opt)
+ * //WComorMqttClient, 保留Promise之參考則可呼叫client.close()關閉使用者端
+ * let client = new WComorMqttClient(opt)
+ * client
  *     .then(function(wo) {
  *         console.log('client: funcs: ', wo)
  *
@@ -100,10 +101,35 @@ function WComorMqttClient(opt) {
     let id = '' //全域儲存當前client id
     let wo = {} //回傳操作物件
     let isuc = 0 //已連線成功次數
+    let closed = false //是否已呼叫close
+    let pmClose = null //close之Promise, 重複呼叫close回傳同一個
+    let timers = new Set() //斷線重連之計時器
+    let clients = new Set() //尚未結束之mqtt連線
+    let pendings = new Map() //已送出而等待回覆之呼叫, key為呼叫_id, value為{ idc, reject }
 
 
     //ev
     let ev = evem()
+
+
+    //genErr, 產生可辨識之錯誤, code供程式判斷
+    function genErr(code, message) {
+        let err = new Error(message)
+        err.code = code
+        return err
+    }
+
+
+    //failPendings, 使等待回覆之呼叫失敗, 給定idc時只處理該連線之呼叫, 未給則全部
+    function failPendings(idc, code, message) {
+        pendings.forEach(function(p, _id) {
+            if (idc === null || p.idc === idc) {
+                pendings.delete(_id)
+                ev.removeAllListeners(_id)
+                p.reject(genErr(code, message))
+            }
+        })
+    }
 
 
     function NewConn() {
@@ -152,6 +178,13 @@ function WComorMqttClient(opt) {
         }
 
 
+        //clients, 記錄尚未結束之連線供close使用, 連線結束後移除
+        clients.add(client)
+        client.once('end', function() {
+            clients.delete(client)
+        })
+
+
         //subscribe
         function subscribe(topicUQid) {
             let pmm = genPm()
@@ -178,6 +211,12 @@ function WComorMqttClient(opt) {
         client.on('connect', function () {
             // console.log('connect')
 
+            //check, 已呼叫close則結束此連線
+            if (closed) {
+                client.end(true)
+                return
+            }
+
             //check
             if (id === idc) {
 
@@ -193,6 +232,12 @@ function WComorMqttClient(opt) {
                     })
                     .catch(function(err) {
                         // console.log('subscribe catch', err)
+
+                        //斷線與關閉已由close, reconn事件通知, 不重複回報
+                        if (get(err, 'code') === 'W_COMOR_DISCONNECTED' || get(err, 'code') === 'W_COMOR_CLOSED') {
+                            return
+                        }
+
                         if (isfun(opt.error)) {
                             opt.error(err)
                         }
@@ -210,30 +255,34 @@ function WComorMqttClient(opt) {
         })
 
 
-        //pub
-        function pub(data) {
-            publish(topicUQid, data)
-        }
-
-
-        //publish
-        function publish(topicUQid, data) {
+        //publish, 發佈失敗(含連線中斷)時以cb回報錯誤
+        function publish(topicUQid, data, cb) {
             // console.log('publish', topicUQid)
             let optt = {
                 qos: 2, // 0, 1, or 2
                 retain: false //false不保留，true則將此訊息保留，除了發送給當前訂閱者之外，當有新訂閱者時，則將最後為1的訊息發給該新訂閱者
             }
             // console.log('client.connected', client.connected)
-            if (client.connected) {
-                // console.log('client.publish', topicUQid, data)
-                client.publish(topicUQid, JSON.stringify(data), optt)
-            }
+            // console.log('client.publish', topicUQid, data)
+            client.publish(topicUQid, JSON.stringify(data), optt, cb)
         }
 
 
         //execFunction
         function execFunction(func, input = null) {
             let pmm = genPm()
+
+            //check, 已close
+            if (closed) {
+                pmm.reject(genErr('W_COMOR_CLOSED', `client is closed, can not call: ${func}`))
+                return pmm
+            }
+
+            //check, 斷線期間之呼叫不排隊等待, 立即失敗
+            if (!client.connected) {
+                pmm.reject(genErr('W_COMOR_DISCONNECTED', `client is disconnected, can not call: ${func}`))
+                return pmm
+            }
 
             //_id
             let _id = genID()
@@ -246,19 +295,55 @@ function WComorMqttClient(opt) {
                 input,
             }
 
-            //pub
-            pub(msg)
+            //fail, 結束此次呼叫並以err reject
+            function fail(err) {
+                pendings.delete(_id)
+                ev.removeAllListeners(_id)
+                pmm.reject(err)
+            }
+
+            //pendings, 連線中斷或close時使其失敗
+            pendings.set(_id, { idc, reject: pmm.reject })
 
             //等待結果回傳
-            ev.on(_id, function (output) {
+            ev.on(_id, function (r) {
 
-                //resolve
-                pmm.resolve(output)
+                //delete
+                pendings.delete(_id)
 
                 //removeAllListeners
                 ev.removeAllListeners(_id)
 
+                //reject, 伺服器端函數拒絕或拋錯時以該錯誤reject
+                if (r.reject) {
+                    let err = genErr('W_COMOR_REMOTE_ERROR', String(get(r, 'output.err', '')))
+                    if (get(r, 'output.name') !== undefined) {
+                        err.remoteName = r.output.name
+                    }
+                    if (get(r, 'output.code') !== undefined) {
+                        err.remoteCode = r.output.code
+                    }
+                    pmm.reject(err)
+                    return
+                }
+
+                //resolve
+                pmm.resolve(r.output)
+
             })
+
+            //publish
+            try {
+                publish(topicUQid, msg, function(err) {
+                    if (err && pendings.has(_id)) {
+                        fail(genErr('W_COMOR_DISCONNECTED', `can not send: ${func}, ${err.message}`))
+                    }
+                })
+            }
+            catch (err) {
+                //input無法序列化(如BigInt、循環參照)
+                fail(genErr('W_COMOR_INVALID_INPUT', `can not send: ${func}, ${err.message}`))
+            }
 
             return pmm
         }
@@ -267,6 +352,11 @@ function WComorMqttClient(opt) {
         //message
         client.on('message', function (topicUQid, message) {
             // console.log('client message', topicUQid, message)
+
+            //check, 已呼叫close則不再處理
+            if (closed) {
+                return
+            }
 
             //check
             if (id === idc) {
@@ -304,8 +394,8 @@ function WComorMqttClient(opt) {
 
                 }
 
-                //get result
-                if (get(data, '_id') && get(data, 'output')) {
+                //get result, output可能為0, false, ''或null, 須以是否為undefined判斷
+                if (get(data, '_id') && get(data, 'output') !== undefined) {
 
                     //_id
                     let _id = get(data, '_id')
@@ -313,8 +403,11 @@ function WComorMqttClient(opt) {
                     //output
                     let output = get(data, 'output')
 
+                    //reject, 伺服器端函數拒絕或拋錯
+                    let reject = get(data, 'reject') === true
+
                     //emit
-                    ev.emit(_id, output)
+                    ev.emit(_id, { output, reject })
 
                 }
 
@@ -336,12 +429,26 @@ function WComorMqttClient(opt) {
         })
 
 
+        //close, 連線中斷後已送出之呼叫不會再有回覆, 使其失敗
+        client.on('close', function() {
+            failPendings(idc, 'W_COMOR_DISCONNECTED', 'connection is closed before getting the reply')
+        })
+
+
         //offline
         client.on('offline', function() {
             //console.log('offline')
 
             //強制停止
             client.end()
+
+            //使已送出之呼叫失敗
+            failPendings(idc, 'W_COMOR_DISCONNECTED', 'connection is offline before getting the reply')
+
+            //check, 已呼叫close則不再通知與重連
+            if (closed) {
+                return
+            }
 
             if (isfun(opt.close)) {
                 opt.close()
@@ -356,6 +463,11 @@ function WComorMqttClient(opt) {
         //error
         client.on('error', function (err) {
             //console.log('error')
+
+            //check, 已呼叫close後不再回報
+            if (closed) {
+                return
+            }
 
             if (isfun(opt.error)) {
                 opt.error(err)
@@ -411,10 +523,17 @@ function WComorMqttClient(opt) {
     //core
     function core() {
 
+        //check, 已呼叫close則不再連線
+        if (closed) {
+            return
+        }
+
         //NewConn
         new NewConn()
             .then(function(woc) {
-                dealFuncs(woc)
+                if (!closed) {
+                    dealFuncs(woc)
+                }
             })
             .catch(function() { })
 
@@ -422,13 +541,61 @@ function WComorMqttClient(opt) {
 
 
     function reconn() {
-        setTimeout(function() {
+
+        //check, 已呼叫close則不再重連
+        if (closed) {
+            return
+        }
+
+        let timer = setTimeout(function() {
+            timers.delete(timer)
+
+            //check
+            if (closed) {
+                return
+            }
+
             if (isfun(opt.reconn)) {
                 opt.reconn()
             }
             core()
         }, 5000)
+        timers.add(timer)
+
     }
+
+
+    //close, 關閉使用者端: 停止重連計時器, 使等待回覆之呼叫失敗, 結束全部連線, 之後不再連線與重連
+    function close() {
+        if (pmClose === null) {
+            pmClose = (async function() {
+
+                //closed
+                closed = true
+
+                //停止重連計時器
+                timers.forEach(function(timer) {
+                    clearTimeout(timer)
+                })
+                timers.clear()
+
+                //使等待回覆之呼叫失敗
+                failPendings(null, 'W_COMOR_CLOSED', 'client is closed before getting the reply')
+
+                //結束全部連線(強制, 同時停止mqtt自身之重連), 待其結束
+                await Promise.all(Array.from(clients).map(function(client) {
+                    return new Promise(function(resolve) {
+                        client.end(true, {}, function() {
+                            resolve()
+                        })
+                    })
+                }))
+
+            })()
+        }
+        return pmClose
+    }
+    pm.close = close
 
 
     core()

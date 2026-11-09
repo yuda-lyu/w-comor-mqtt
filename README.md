@@ -175,7 +175,7 @@ new WComorMqttClient(opt)
 
 Add script for mqtt.
 ```alias
-<script src="https://cdn.jsdelivr.net/npm/mqtt@3.0.0/dist/mqtt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.16.1/dist/mqtt.min.js"></script>
 ```
 
 Add script for w-comor-mqtt-client.
@@ -255,3 +255,57 @@ new WComorMqttClient(opt)
         console.log('client web: catch', err)
     })
 ```
+
+## Upgrade notes: aedes 1.x and mqtt 5.16
+
+The broker is now built on `aedes` 1.2.x (it fixes the remote DoS and resource exhaustion advisories GHSA-xxqp-5qx8-gj5q, GHSA-52qw-whmv-87c5, GHSA-5jvp-3p2v-5qgf and GHSA-p8r9-qf8w-p73r, which 0.x never received) and the client on `mqtt` 5.16.x.
+
+* **Node.js**: `aedes` 1.x requires Node.js >= 20. The UMD files in `dist` load the ESM-only `aedes` with `require` (verified on Node.js 24), which relies on `require(esm)` support (enabled by default since Node.js 20.19 and 22.12) when using `w-comor-mqtt/dist/w-comor-mqtt-server.umd.js`.
+* **`new WComorMqttServer(opt)` now returns a Promise** (aedes 1.x must be started asynchronously). It resolves to `{ port, portWeb, close }` once both ports are listening, and rejects if a port can not be listened (for example `EADDRINUSE`). Code that ignores the return value, like the example above, keeps working. To wait until the server is ready, close it, or handle a listening error:
+
+```alias
+let srv = await new WComorMqttServer(opt)
+//...
+await srv.close() //disconnect all clients and release both ports, safe to call more than once
+```
+
+* **`close()` is new**: before, there was no way to stop the server. After `close()` the same ports can be used by a new `WComorMqttServer`; connected clients reconnect by themselves.
+* **`onClientChange` now also fires when a client disconnects**: the previous version listened to a misspelled event name (`clientDisconnected`, the real one is `clientDisconnect`), so it was only called when a client connected and `clients` never shrank.
+* **Slow clients are dropped**: `aedes` 1.x sets `drainTimeout` to 60000 ms by default (0 before), so a client whose socket stays blocked for 60 seconds is disconnected, then reconnects automatically.
+* **`engines`**: `package.json` declares `"node": "^20.19.0 || >=22.12.0"` (the Node.js versions where `require(esm)` is enabled by default, needed by the UMD files to load the ESM-only `aedes`).
+* **`mqtt` 5.16**: `w-comor-mqtt-client` never read the CONNACK back into its options, so the `mqtt` 5.16 changes (CONNACK no longer rewrites the caller's options, a refused CONNACK always closes the socket) need no change in your code. A client whose token is refused by `authenticate` receives `opt.error` with `Connection refused: Not authorized` (code 5) and stays unresolved. In a browser, load `mqtt` 5.x (the example above uses 5.16.1) instead of 3.x.
+
+### Behavior changes of `w-comor-mqtt-server` and `w-comor-mqtt-client` calls
+
+There is no compatibility layer; adjust the code that calls the mapped functions as listed.
+
+| Situation | Before | Now | What to change |
+|---|---|---|---|
+| A server function (`opt.funcs`) rejects or throws | The server only logged it; the client call never settled | The client call **rejects** with an `Error`: `err.code === 'W_COMOR_REMOTE_ERROR'`, `err.message` is the message of the server error (a string or an object rejection is converted to text), plus `err.remoteName` (error class name) and `err.remoteCode` (the `code` of the server error) when present. The server stack is never sent | Add `.catch` to calls. Do not put secrets in error messages: the message is sent to the client |
+| A server function resolves `{ err: '...' }` | Resolved | Still resolves with the same data (only a rejection is an error) | Nothing |
+| Call to a function that is unknown or not allowed for the token | Resolved `{ err: 'can not find: <name>' }` | Same | Nothing |
+| A client calls while it is disconnected | The request was dropped and the call never settled | The call **rejects at once** (not queued, not sent after reconnecting) with `err.code === 'W_COMOR_DISCONNECTED'` | Retry in your code after the `open` callback if you need to |
+| The connection drops while a call is waiting for its reply | Never settled | Rejects with `err.code === 'W_COMOR_DISCONNECTED'` | Same as above |
+| Server function returns `0`, `false`, `''`, `null` or `undefined` | The client call never settled | Resolves with that value (`undefined` becomes `null`) | Nothing |
+| Request input contains the text `"output"` | The request was silently ignored | Handled normally | Nothing |
+| Server function result can not be serialized (for example `BigInt`) | The client call never settled | Rejects with `W_COMOR_REMOTE_ERROR` (`can not serialize output: ...`) | Return JSON-compatible values |
+| Input of a call can not be serialized | Thrown inside the call | Rejects with `err.code === 'W_COMOR_INVALID_INPUT'` | Pass JSON-compatible input |
+| `opt.filterFuncs(token, funcs)` | The result of the first client replaced the function list of every later client, and calls of other tokens could fail with `can not find` | The result is used for that token only; `funcs` passed to `filterFuncs` is a copy; the allow list is evaluated per request, so a token can not call a function that `filterFuncs` removed for it, even without asking for the list first | Nothing, unless you relied on the shared effect |
+
+The last row narrows what a token may call (a function hidden by `filterFuncs` is now refused even when called directly). Before upgrading, check whether any client relied on the old behavior: make your `filterFuncs` log the names it removes for each token, then compare them with the function names your clients call (for example with `grep`).
+
+### Closing the client
+
+`new WComorMqttClient(opt)` returns a Promise that now also has a `close()` function. Keep a reference to that Promise (`.then()` returns a new Promise without `close`):
+
+```alias
+let client = new WComorMqttClient(opt)
+let wo = await client
+//...
+await client.close() //stop reconnecting, end the connection, reject waiting calls with code 'W_COMOR_CLOSED'
+```
+
+* `close()` is safe to call more than once (it returns the same Promise), clears the reconnect timer, ends every connection, and rejects the calls that are waiting for a reply with `err.code === 'W_COMOR_CLOSED'`. Calls made after it reject with the same code.
+* After `close()` the `open`, `close`, `error` and `reconn` callbacks are not called again, so closing on purpose does not trigger `opt.close`.
+* Without `close()`, the client reconnects every 5 seconds after a disconnect until the process ends (unchanged).
+* If the client has not connected yet (for example the token was refused), the Promise stays pending after `close()`; it is not rejected.
