@@ -1,5 +1,5 @@
 /*!
- * w-comor-mqtt-client v1.1.38
+ * w-comor-mqtt-client v1.1.39
  * (c) 2018-2021 yuda-lyu(semisphere)
  * Released under the MIT License.
  */
